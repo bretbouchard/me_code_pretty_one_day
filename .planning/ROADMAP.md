@@ -65,7 +65,7 @@
 | 3.1 | Download and verify Qwen2.5-Coder-7B-Instruct Q4_K_M model |
 | 3.2 | Configure Ollama serving with model and test latency/throughput |
 | 3.3 | Configure mlx_lm.server alternative serving path |
-| 3.4 | Offline verification — disconnect network, verify full inference |
+| 3.4 | Offline verification -- disconnect network, verify full inference |
 | 3.5 | Benchmark latency (TTFT) and throughput (tok/s) |
 
 **Success Criteria:**
@@ -83,17 +83,21 @@
 **Plans:**
 | Plan | Description |
 |------|-------------|
-| 4.1 | Training data generator (code tasks with Q+A+ground truth, 5000+ examples) |
-| 4.2 | MLX-LoRA training script (rank 16-32, QLoRA 4-bit, lr=5e-6) |
-| 4.3 | Adapter export and Ollama GGUF merge pipeline |
-| 4.4 | Train/val split validation |
-| 4.5 | Base vs fine-tuned comparison benchmark |
+| 4.1 | Training data generator + seed tasks + train/val split + tests (LAKE-07, LAKE-08, LAKE-10) |
+| 4.2 | LoRA training config + wrapper script with disk check (LAKE-06) |
+| 4.3 | Adapter serving (mlx_lm.server native) + Ollama deploy + benchmark comparison (LAKE-09) |
+
+Plans:
+- [ ] 04-01-PLAN.md -- Training data generator with seed tasks, train/val split, and unit tests
+- [ ] 04-02-PLAN.md -- LoRA config YAML and training wrapper script
+- [ ] 04-03-PLAN.md -- Fine-tuned model serving, Ollama deploy, base vs fine-tuned benchmark
 
 **Success Criteria:**
-- [ ] 5000+ training examples in Qwen ChatML format
-- [ ] LoRA adapter trains successfully via mlx-lm
-- [ ] Adapter merges into GGUF for Ollama serving
-- [ ] Fine-tuned model shows measurable improvement over base
+- [ ] 5000+ training examples in standard chat JSONL format (mlx-lm applies ChatML automatically)
+- [ ] LoRA adapter trains successfully via mlx-lm with QLoRA 4-bit, rank 16
+- [ ] Fine-tuned model serves via mlx_lm.server with native adapter loading
+- [ ] Optional Ollama deployment via experimental safetensors import (GGUF not supported for Qwen2)
+- [ ] Fine-tuned model shows measurable improvement over base in benchmark comparison
 
 ## Phase 5: RAG & Evaluation
 
@@ -122,12 +126,12 @@
 ```
 Phase 1 (Rick Updates) ────────────────────────────┐
 Phase 2 (New Ricks) ───────────────────────────────┤
-                                                    ├──→ (Independent tracks)
-Phase 3 (Serving) ──→ Phase 4 (Fine-Tuning) ──→ Phase 5 (RAG & Eval)
+                                                    ├──> (Independent tracks)
+Phase 3 (Serving) ──> Phase 4 (Fine-Tuning) ──> Phase 5 (RAG & Eval)
 ```
 
 Phase 1 and 2 (Rick work) are independent from Phase 3-5 (Local AI work).
 
 ---
 *Roadmap created: 2026-06-10*
-*Last updated: 2026-06-10 after initial definition*
+*Last updated: 2026-06-10 after Phase 4 planning*
