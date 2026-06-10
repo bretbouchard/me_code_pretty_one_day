@@ -1,0 +1,15 @@
+# Model weights (large binary files, download via scripts)
+models/
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+
+# OS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,18 @@
+=== Throughput Benchmark ===
+Server: http://localhost:11434
+Model:  qwen2.5-coder:7b-instruct-q4_K_M
+Iterations: 3
+Max tokens: 512
+
+iteration=1 tokens=605 elapsed=19.901s gen_time=19.607s tok/s=30.9
+iteration=2 tokens=689 elapsed=21.789s gen_time=21.634s tok/s=31.9
+iteration=3 tokens=674 elapsed=26.043s gen_time=25.854s tok/s=26.1
+
+=== Results ===
+Successful:     3/3
+Avg tokens:     656
+Mean throughput: 29.6 tok/s
+Min throughput:  26.1 tok/s
+Max throughput:  31.9 tok/s
+Target:          >=30.0 tok/s
+Status:          FAIL

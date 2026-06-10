@@ -1,0 +1,17 @@
+=== Offline Verification ===
+Server: http://localhost:11434
+Model:  qwen2.5-coder:7b-instruct-q4_K_M
+Mode: monitor (no-sudo)
+
+=== Soft Offline Test (monitor mode) ===
+NOTE: This monitors for outbound connections but does NOT disconnect.
+
+[1] Checking server... OK
+[2] Capturing baseline connections... OK (36 external connections)
+[3] Generating code while monitoring connections...
+  Prompt 1: OK (external connections: 35)
+  Prompt 2: OK (external connections: 34)
+  Prompt 3: OK (external connections: 35)
+[4] Post-generation connection check... OK (no new connections)
+
+=== Soft Offline Test: PASS ===
