@@ -1,0 +1,57 @@
+# LoRA Training Configuration for Qwen2.5-Coder-7B-Instruct
+# QLoRA 4-bit quantization with MLX framework
+#
+# LAKE-06 requirements:
+#   - QLoRA 4-bit quantization (base model is pre-quantized)
+#   - Rank 16-32 (starting with 16, proven in kicad-agent)
+#   - Learning rate 5e-6
+#
+# References:
+#   - RESEARCH Pattern 1 (QLoRA Training Config)
+#   - RESEARCH Pitfall 2 (Disk Space)
+#   - RESEARCH Anti-Patterns (mask-prompt required)
+
+# --- Model & Data ---
+model: "models/qwen2.5-coder-7b-instruct-4bit-mlx"  # 4-bit quantized base model (pre-converted via mlx_lm.convert)
+train: true
+fine_tune_type: lora
+data: "data"                                          # Directory containing train.jsonl and valid.jsonl
+seed: 42                                             # LAKE-10 reproducibility
+
+# --- Training ---
+num_layers: 16                # Fine-tune last 16 of 28 layers — memory efficient, proven effective
+batch_size: 1                 # Reduced from 2 to prevent Metal GPU hang (condition_variable::wait deadlock)
+iters: 1000                   # ~3.6 epochs over 22K examples (effective batch 8)
+learning_rate: 0.000005        # 5e-6 — LAKE-06 requirement; safe for QLoRA code tasks
+grad_accumulation_steps: 4    # Effective batch size = 1 * 4 = 4 (reduced to prevent GPU hang)
+
+# --- Validation & Reporting ---
+val_batches: 10               # Reduced from 25 to avoid GPU timeout on Mac Mini
+steps_per_report: 10          # Report training loss every 10 steps
+steps_per_eval: 100           # Run validation every 100 steps
+
+# --- Checkpointing ---
+save_every: 100                # Save adapter checkpoint every 100 iterations
+adapter_path: "training/adapters"  # Output directory for adapter weights
+
+# --- LoRA Parameters ---
+lora_parameters:
+  keys:                                       # Target all 4 self-attention projections
+    - "self_attn.q_proj"
+    - "self_attn.k_proj"
+    - "self_attn.v_proj"
+    - "self_attn.o_proj"
+  rank: 32                                    # Rank 32 for more capacity; rank 16 plateaued at val loss 0.261
+  scale: 64.0                                 # Alpha = 2x rank (standard scaling)
+  dropout: 0.0                               # No dropout for code generation tasks
+
+# --- Learning Rate Schedule ---
+lr_schedule:
+  name: cosine_decay            # Smooth decay prevents training instability
+  warmup: 100                   # 100-step linear warmup (10% of 1000 iters)
+  warmup_init: 0.0000001        # 1e-7 — start warmup from very low LR
+  arguments: [0.000005, 1000, 0.0000001]  # [peak_lr=5e-6, total_iters, min_lr=1e-7]
+
+# --- Memory & Optimization ---
+grad_checkpoint: true           # CRITICAL: reduces memory by recomputing activations during backward pass
+max_seq_length: 1024            # Reduced from 2048 to prevent GPU watchdog timeout

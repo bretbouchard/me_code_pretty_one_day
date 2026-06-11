@@ -1,0 +1,47 @@
+# LoRA Training Configuration — Formatting-focused fine-tune
+# Uses formatter-based before/after pairs (black, prettier, rustfmt)
+
+# --- Model & Data ---
+model: "models/qwen2.5-coder-7b-instruct-4bit-mlx"
+train: true
+fine_tune_type: lora
+data: "data/formatting"
+seed: 42
+
+# --- Training ---
+num_layers: 16
+batch_size: 1
+iters: 2000                  # More iters — smaller dataset (500 samples)
+learning_rate: 0.00001       # 1e-5 — higher LR for focused formatting task
+grad_accumulation_steps: 4
+
+# --- Validation & Reporting ---
+val_batches: 5                 # Reduced from 10 to prevent GPU watchdog timeout
+steps_per_report: 10
+steps_per_eval: 200             # Eval less frequently to reduce GPU stress
+
+# --- Checkpointing ---
+save_every: 200              # Save every 200 iters
+adapter_path: "training/adapters-formatting"
+
+# --- LoRA Parameters ---
+lora_parameters:
+  keys:
+    - "self_attn.q_proj"
+    - "self_attn.k_proj"
+    - "self_attn.v_proj"
+    - "self_attn.o_proj"
+  rank: 32
+  scale: 64.0
+  dropout: 0.0
+
+# --- Learning Rate Schedule ---
+lr_schedule:
+  name: cosine_decay
+  warmup: 200                  # 200-step warmup (10% of 2000)
+  warmup_init: 0.0000001
+  arguments: [0.00001, 2000, 0.0000001]
+
+# --- Memory & Optimization ---
+grad_checkpoint: true
+max_seq_length: 1024
