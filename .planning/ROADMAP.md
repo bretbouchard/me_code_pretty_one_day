@@ -42,7 +42,8 @@ Plans: 4 plans (4 complete)
 
 **Requirements:** RICK-05, RICK-06, RICK-07, RICK-08
 
-**Plans:**
+**Plans:** 4 plans (pre-existing — files created in prior session)
+
 | Plan | Description |
 |------|-------------|
 | 2.1 | Create foundation-models-rick (AFM framework, on-device/server, LoRA, @Generable) |
@@ -51,10 +52,12 @@ Plans: 4 plans (4 complete)
 | 2.4 | Create visionos-rick (spatial UI, GlassEffectContainer, spatial accessories) |
 
 **Success Criteria:**
-- [ ] Each new Rick follows established agent definition format
-- [ ] Registered in Council of Ricks wave routing
-- [ ] Covers all relevant WWDC25/26 sessions for its domain
-- [ ] Tools list matches domain (Read, Write, Edit, Bash, Grep, Glob, WebSearch, WebFetch)
+- [x] Each new Rick follows established agent definition format
+- [x] Registered in Council of Ricks wave routing
+- [x] Covers all relevant WWDC25/26 sessions for its domain
+- [x] Tools list matches domain (Read, Write, Edit, Bash, Grep, Glob, WebSearch, WebFetch)
+
+**Completed:** 2026-06-12 (verified — 4 files exist at ~/.claude/agents/, 800-975 lines each)
 
 ## Phase 3: Local AI Serving
 

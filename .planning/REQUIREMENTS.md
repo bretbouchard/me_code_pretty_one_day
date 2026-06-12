@@ -45,10 +45,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Rick Updates — New
 
-- [ ] **RICK-05**: foundation-models-rick — AFM framework specialist (LanguageModelSession, @Generable, Tool protocol, LoRA adapters, on-device vs server, Privacy-Preserving Compute)
-- [ ] **RICK-06**: metal-4-rick — Metal 4 GPU framework specialist (ML+graphics convergence, WebGPU support, new shader stages, mesh shaders, ray tracing updates)
-- [ ] **RICK-07**: privacy-rick — Apple privacy platform specialist (quantum-safe crypto, Containerization framework, PermissionKit, App Tracking updates, PCC architecture)
-- [ ] **RICK-08**: visionos-rick — visionOS 26+ specialist (spatial UI, GlassEffectContainer, spatial accessories, shared space, persona rendering)
+- [x] **RICK-05**: foundation-models-rick — AFM framework specialist (LanguageModelSession, @Generable, Tool protocol, LoRA adapters, on-device vs server, Privacy-Preserving Compute)
+- [x] **RICK-06**: metal-4-rick — Metal 4 GPU framework specialist (ML+graphics convergence, WebGPU support, new shader stages, mesh shaders, ray tracing updates)
+- [x] **RICK-07**: privacy-rick — Apple privacy platform specialist (quantum-safe crypto, Containerization framework, PermissionKit, App Tracking updates, PCC architecture)
+- [x] **RICK-08**: visionos-rick — visionOS 26+ specialist (spatial UI, GlassEffectContainer, spatial accessories, shared space, persona rendering)
 
 ## v2 Requirements
 
@@ -102,10 +102,10 @@ Deferred to future release. Tracked but not in current roadmap.
 | RICK-02 | Phase 1 | Complete |
 | RICK-03 | Phase 1 | Complete |
 | RICK-04 | Phase 1 | Complete |
-| RICK-05 | Phase 2 | Pending |
-| RICK-06 | Phase 2 | Pending |
-| RICK-07 | Phase 2 | Pending |
-| RICK-08 | Phase 2 | Pending |
+| RICK-05 | Phase 2 | Complete |
+| RICK-06 | Phase 2 | Complete |
+| RICK-07 | Phase 2 | Complete |
+| RICK-08 | Phase 2 | Complete |
 
 **Coverage:**
 - v1 requirements: 24 total
