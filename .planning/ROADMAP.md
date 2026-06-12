@@ -19,13 +19,13 @@
 
 **Requirements:** RICK-01, RICK-02, RICK-03, RICK-04
 
-**Plans:**
-| Plan | Description |
-|------|-------------|
-| 1.1 | Update apple-elitist-rick with Foundation Models, Liquid Glass, Metal 4, new frameworks, deprecations |
-| 1.2 | Update gamer-rick with Apple Games app, Metal 4 game features, Game Center, visionOS gaming |
-| 1.3 | Update swiftui-liquid-glass with spatial layout, WebKit for SwiftUI, new modifiers |
-| 1.4 | Update swift-concurrency-expert with C++/Swift interop, Java interop, new patterns |
+**Plans:** 4 plans
+
+Plans:
+- [ ] 01-01-PLAN.md -- Update apple-elitist-rick with WWDC26 (SiriKit deprecation, App Intents, UISceneDelegate, Swift 6.4, Xcode 27, cross-references to new Ricks)
+- [ ] 01-02-PLAN.md -- Update gamer-rick with WWDC26 (Logitech Muse, MetalFX, frame interpolation, Liquid Glass intensity, cross-references to metal-4-rick and visionos-rick)
+- [ ] 01-03-PLAN.md -- Update swiftui-liquid-glass with WWDC26 (Liquid Glass intensity switch, TextEditor rich text, spatial layout refinements, Swift 6.4 concurrency, cross-reference to visionos-rick)
+- [ ] 01-04-PLAN.md -- Update swift-concurrency-expert with WWDC26 (Swift 6.4 ergonomics, auto-generated C++ bindings, `sending` convention, module-level default isolation, Java interop updates)
 
 **Success Criteria:**
 - [ ] Each Rick agent file includes all WWDC25/26 framework additions
@@ -134,4 +134,4 @@ Phase 1 and 2 (Rick work) are independent from Phase 3-5 (Local AI work).
 
 ---
 *Roadmap created: 2026-06-10*
-*Last updated: 2026-06-10 after Phase 4 planning*
+*Last updated: 2026-06-12 after Phase 1 planning*
