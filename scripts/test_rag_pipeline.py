@@ -8,16 +8,19 @@ import json
 import sys
 import os
 import unittest.mock
+import urllib.error
+import urllib.request
 
 import pytest
 
 # Ensure scripts directory is importable
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__))))
 
-from generate import generate_with_rag
+from generate import generate_with_rag, parse_args
 
 
 # --- Integration test configuration ---
+
 
 def pytest_addoption(parser):
     parser.addoption(
@@ -38,6 +41,31 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(skip)
 
 
+# --- Helpers ---
+
+
+def _mock_urlopen_response(response_data: dict):
+    """Create a mock urlopen context manager that returns the given JSON data."""
+    mock_resp = unittest.mock.MagicMock()
+    mock_resp.read.return_value = json.dumps(response_data).encode()
+    mock_resp.__enter__ = unittest.mock.MagicMock(return_value=mock_resp)
+    mock_resp.__exit__ = unittest.mock.MagicMock(return_value=False)
+    return mock_resp
+
+
+def _mock_assembler(assemble_return: list[dict] | None = None):
+    """Create a mock PromptAssembler that returns given messages from assemble."""
+    mock = unittest.mock.patch("generate.PromptAssembler")
+    MockAssembler = mock.start()
+    if assemble_return is None:
+        assemble_return = [
+            {"role": "system", "content": "You are an expert."},
+            {"role": "user", "content": "test prompt"},
+        ]
+    MockAssembler.return_value.assemble.return_value = assemble_return
+    return MockAssembler, mock
+
+
 # --- Unit tests for generate_with_rag ---
 
 
@@ -53,32 +81,17 @@ class TestGenerateWithRAG:
             "usage": {"prompt_tokens": 50, "completion_tokens": 100},
         }
 
-        with (
-            unittest.mock.patch(
-                "generate.PromptAssembler"
-            ) as MockAssembler,
-            unittest.mock.patch(
-                "generate.urlopen"
-            ) as mock_urlopen,
-        ):
-            mock_instance = MockAssembler.return_value
-            mock_instance.assemble.return_value = [
-                {"role": "system", "content": "You are an expert."},
-                {"role": "user", "content": "write a binary search"},
-            ]
+        MockAssembler, mock_asm = _mock_assembler()
+        mock_urlopen = _mock_urlopen_response(mock_response)
 
-            mock_resp = unittest.mock.MagicMock()
-            mock_resp.read.return_value = json.dumps(mock_response).encode()
-            mock_resp.__enter__ = unittest.mock.MagicMock(return_value=mock_resp)
-            mock_resp.__exit__ = unittest.mock.MagicMock(return_value=False)
-            mock_urlopen.return_value = mock_resp
-
+        with unittest.mock.patch("urllib.request.urlopen", return_value=mock_urlopen):
             result = generate_with_rag(
                 "write a binary search",
                 domain="python",
                 model_path="/fake/model",
             )
 
+        mock_asm.stop()
         assert result is not None
         assert isinstance(result, str)
         assert len(result) > 0
@@ -92,109 +105,63 @@ class TestGenerateWithRAG:
             "usage": {"prompt_tokens": 30, "completion_tokens": 50},
         }
 
-        with (
-            unittest.mock.patch(
-                "generate.PromptAssembler"
-            ) as MockAssembler,
-            unittest.mock.patch(
-                "generate.urlopen"
-            ) as mock_urlopen,
-        ):
-            mock_instance = MockAssembler.return_value
-            mock_instance.retrieve_patterns.return_value = []
-            mock_instance.assemble.return_value = [
-                {"role": "system", "content": "SLC only."},
-                {"role": "user", "content": "hello world"},
-            ]
+        MockAssembler, mock_asm = _mock_assembler([
+            {"role": "system", "content": "SLC only."},
+            {"role": "user", "content": "hello world"},
+        ])
+        mock_urlopen = _mock_urlopen_response(mock_response)
 
-            mock_resp = unittest.mock.MagicMock()
-            mock_resp.read.return_value = json.dumps(mock_response).encode()
-            mock_resp.__enter__ = unittest.mock.MagicMock(return_value=mock_resp)
-            mock_resp.__exit__ = unittest.mock.MagicMock(return_value=False)
-            mock_urlopen.return_value = mock_resp
-
+        with unittest.mock.patch("urllib.request.urlopen", return_value=mock_urlopen):
             result = generate_with_rag(
                 "hello world",
                 domain="python",
                 model_path="/fake/model",
             )
 
+        mock_asm.stop()
         assert result is not None
         assert len(result) > 0
 
     def test_generate_with_rag_calls_assemble_with_correct_args(self):
         """generate_with_rag calls PromptAssembler.assemble with the correct user_prompt and domain."""
-        with (
-            unittest.mock.patch(
-                "generate.PromptAssembler"
-            ) as MockAssembler,
-            unittest.mock.patch(
-                "generate.urlopen"
-            ),
-        ):
-            mock_instance = MockAssembler.return_value
-            mock_instance.assemble.return_value = [
-                {"role": "system", "content": "sys"},
-                {"role": "user", "content": "user"},
-            ]
+        mock_response = {
+            "choices": [{"message": {"content": "output"}}],
+            "usage": {"prompt_tokens": 10, "completion_tokens": 5},
+        }
 
-            mock_resp = unittest.mock.MagicMock()
-            mock_resp.read.return_value = json.dumps(
-                {"choices": [{"message": {"content": "output"}}]}
-            ).encode()
-            mock_resp.__enter__ = unittest.mock.MagicMock(return_value=mock_resp)
-            mock_resp.__exit__ = unittest.mock.MagicMock(return_value=False)
-            unittest.mock.patch(
-                "generate.urlopen",
-                return_value=mock_resp,
-            ).start()
-            # Need to re-patch after the context manager started
-            with unittest.mock.patch("generate.urlopen") as mock_urlopen:
-                mock_urlopen.return_value = mock_resp
-                generate_with_rag(
-                    "write a function",
-                    domain="swift",
-                    model_path="/fake/model",
-                    max_tokens=1024,
-                )
+        MockAssembler, mock_asm = _mock_assembler()
+        mock_urlopen = _mock_urlopen_response(mock_response)
 
-            mock_instance.assemble.assert_called_once_with(
-                "write a function", "swift", max_generation_tokens=1024
+        with unittest.mock.patch("urllib.request.urlopen", return_value=mock_urlopen):
+            generate_with_rag(
+                "write a function",
+                domain="swift",
+                model_path="/fake/model",
+                max_tokens=1024,
             )
+
+        mock_asm.stop()
+        MockAssembler.return_value.assemble.assert_called_once_with(
+            "write a function", "swift", max_generation_tokens=1024, skip_rag=False
+        )
 
     def test_generate_with_rag_sends_to_ollama_endpoint(self):
         """generate_with_rag sends messages to Ollama API endpoint at localhost:11434/v1/chat/completions."""
-        import urllib.request
-
         mock_response = {
             "choices": [{"message": {"content": "code here"}}],
             "usage": {"prompt_tokens": 10, "completion_tokens": 5},
         }
 
-        with (
-            unittest.mock.patch(
-                "generate.PromptAssembler"
-            ) as MockAssembler,
-            unittest.mock.patch(
-                "generate.urlopen"
-            ) as mock_urlopen,
-        ):
-            MockAssembler.return_value.assemble.return_value = [
-                {"role": "system", "content": "sys"},
-                {"role": "user", "content": "user"},
-            ]
+        _, mock_asm = _mock_assembler()
+        mock_urlopen = _mock_urlopen_response(mock_response)
 
-            mock_resp = unittest.mock.MagicMock()
-            mock_resp.read.return_value = json.dumps(mock_response).encode()
-            mock_resp.__enter__ = unittest.mock.MagicMock(return_value=mock_resp)
-            mock_resp.__exit__ = unittest.mock.MagicMock(return_value=False)
-            mock_urlopen.return_value = mock_resp
-
+        with unittest.mock.patch("urllib.request.urlopen", return_value=mock_urlopen) as patched:
             generate_with_rag("test", domain="python", model_path="/fake/model")
 
+            mock_asm.stop()
             # Verify the request was made to the correct endpoint
-            mock_urlopen.assert_called_once()
-            call_arg = mock_urlopen.call_args
+            patched.assert_called_once()
+            call_arg = patched.call_args
             assert call_arg is not None
             req = call_arg[0][0]
             assert isinstance(req, urllib.request.Request)
@@ -208,64 +175,37 @@ class TestGenerateWithRAG:
             "usage": {"prompt_tokens": 20, "completion_tokens": 40},
         }
 
-        with (
-            unittest.mock.patch(
-                "generate.PromptAssembler"
-            ) as MockAssembler,
-            unittest.mock.patch(
-                "generate.urlopen"
-            ) as mock_urlopen,
-        ):
-            MockAssembler.return_value.assemble.return_value = [
-                {"role": "system", "content": "sys"},
-                {"role": "user", "content": "user"},
-            ]
+        _, mock_asm = _mock_assembler()
+        mock_urlopen = _mock_urlopen_response(mock_response)
 
-            mock_resp = unittest.mock.MagicMock()
-            mock_resp.read.return_value = json.dumps(mock_response).encode()
-            mock_resp.__enter__ = unittest.mock.MagicMock(return_value=mock_resp)
-            mock_resp.__exit__ = unittest.mock.MagicMock(return_value=False)
-            mock_urlopen.return_value = mock_resp
-
+        with unittest.mock.patch("urllib.request.urlopen", return_value=mock_urlopen):
             result = generate_with_rag("add function", domain="python", model_path="/fake/model")
 
+        mock_asm.stop()
         assert result == expected_content
 
     def test_generate_with_rag_handles_connection_error(self):
         """generate_with_rag handles Ollama connection error gracefully (returns None)."""
-        import urllib.error
+        _, mock_asm = _mock_assembler()
 
-        with (
-            unittest.mock.patch(
-                "generate.PromptAssembler"
-            ) as MockAssembler,
-            unittest.mock.patch(
-                "generate.urlopen",
-                side_effect=urllib.error.URLError("Connection refused"),
-            ),
+        with unittest.mock.patch(
+            "urllib.request.urlopen",
+            side_effect=urllib.error.URLError("Connection refused"),
         ):
-            MockAssembler.return_value.assemble.return_value = [
-                {"role": "system", "content": "sys"},
-                {"role": "user", "content": "user"},
-            ]
-
             result = generate_with_rag("test", domain="python", model_path="/fake/model")
 
+        mock_asm.stop()
         assert result is None
 
     def test_cli_argument_parsing(self):
         """CLI argument parsing accepts --prompt, --domain, --max-tokens, --temperature, --no-rag flags."""
-        from generate import parse_args
-
-        with unittest.mock.patch("sys.argv", [
-            "generate.py",
+        args = parse_args([
             "write a function",
             "--domain", "swift",
             "--max-tokens", "4096",
             "--temperature", "0.5",
             "--no-rag",
-        ]):
-            args = parse_args()
+        ])
 
         assert args.prompt == "write a function"
         assert args.domain == "swift"
@@ -280,26 +220,10 @@ class TestGenerateWithRAG:
             "usage": {"prompt_tokens": 10, "completion_tokens": 5},
         }
 
-        with (
-            unittest.mock.patch(
-                "generate.PromptAssembler"
-            ) as MockAssembler,
-            unittest.mock.patch(
-                "generate.urlopen"
-            ) as mock_urlopen,
-        ):
-            mock_instance = MockAssembler.return_value
-            mock_instance.assemble.return_value = [
-                {"role": "system", "content": "sys"},
-                {"role": "user", "content": "user"},
-            ]
+        MockAssembler, mock_asm = _mock_assembler()
+        mock_urlopen = _mock_urlopen_response(mock_response)
 
-            mock_resp = unittest.mock.MagicMock()
-            mock_resp.read.return_value = json.dumps(mock_response).encode()
-            mock_resp.__enter__ = unittest.mock.MagicMock(return_value=mock_resp)
-            mock_resp.__exit__ = unittest.mock.MagicMock(return_value=False)
-            mock_urlopen.return_value = mock_resp
-
+        with unittest.mock.patch("urllib.request.urlopen", return_value=mock_urlopen):
             result = generate_with_rag(
                 "test prompt",
                 domain="python",
@@ -307,11 +231,12 @@ class TestGenerateWithRAG:
                 no_rag=True,
             )
 
+        mock_asm.stop()
         # retrieve_patterns should NOT have been called
-        mock_instance.retrieve_patterns.assert_not_called()
+        MockAssembler.return_value.retrieve_patterns.assert_not_called()
         # assemble should have been called with skip_rag=True
-        mock_instance.assemble.assert_called_once_with(
-            "test prompt", "python", max_generation_tokens=2048
+        MockAssembler.return_value.assemble.assert_called_once_with(
+            "test prompt", "python", max_generation_tokens=2048, skip_rag=True
         )
 
     def test_verbose_reports_retrieval_latency(self, capsys):
@@ -321,29 +246,13 @@ class TestGenerateWithRAG:
             "usage": {"prompt_tokens": 50, "completion_tokens": 100},
         }
 
-        with (
-            unittest.mock.patch(
-                "generate.PromptAssembler"
-            ) as MockAssembler,
-            unittest.mock.patch(
-                "generate.urlopen"
-            ) as mock_urlopen,
-        ):
-            mock_instance = MockAssembler.return_value
-            mock_instance.retrieve_patterns.return_value = [
-                {"id": "p1", "type": "pattern", "content": "pattern content", "tags": ["test"]}
-            ]
-            mock_instance.assemble.return_value = [
-                {"role": "system", "content": "sys"},
-                {"role": "user", "content": "user"},
-            ]
+        MockAssembler, mock_asm = _mock_assembler()
+        MockAssembler.return_value.retrieve_patterns.return_value = [
+            {"id": "p1", "type": "pattern", "content": "pattern content", "tags": ["test"]}
+        ]
+        mock_urlopen = _mock_urlopen_response(mock_response)
 
-            mock_resp = unittest.mock.MagicMock()
-            mock_resp.read.return_value = json.dumps(mock_response).encode()
-            mock_resp.__enter__ = unittest.mock.MagicMock(return_value=mock_resp)
-            mock_resp.__exit__ = unittest.mock.MagicMock(return_value=False)
-            mock_urlopen.return_value = mock_resp
-
+        with unittest.mock.patch("urllib.request.urlopen", return_value=mock_urlopen):
             result = generate_with_rag(
                 "test",
                 domain="python",
@@ -351,9 +260,10 @@ class TestGenerateWithRAG:
                 verbose=True,
             )
 
+        mock_asm.stop()
         captured = capsys.readouterr()
-        assert "Retrieved 1 patterns" in captured.out
-        assert "ms" in captured.out
+        assert "Retrieved 1 patterns" in captured.err
+        assert "ms" in captured.err
 
 
 # --- Integration tests (skipped by default) ---
@@ -369,9 +279,6 @@ class TestRAGPipelineIntegration:
 
     def test_ollama_reachable(self):
         """Check if Ollama is reachable at localhost:11434."""
-        import urllib.request
-        import urllib.error
-
         try:
             req = urllib.request.Request("http://localhost:11434/v1/models")
             with urllib.request.urlopen(req, timeout=5) as resp:
