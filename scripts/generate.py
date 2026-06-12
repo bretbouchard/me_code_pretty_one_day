@@ -84,7 +84,7 @@ def generate_with_rag(
                 messages, add_generation_prompt=True, tokenize=True
             )
             print(f"Prompt tokens: {len(tokenized)}", file=sys.stderr)
-        except Exception:
+        except (TypeError, ValueError, AttributeError):
             pass
 
     # Step 3: Send to Ollama API
