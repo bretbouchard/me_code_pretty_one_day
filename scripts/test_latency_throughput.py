@@ -98,7 +98,7 @@ class TestBuildVariantMessages:
 
     def test_rag_variant_calls_prompt_assembler(self):
         build = self._get_build_fn()
-        with patch("benchmark_utils.PromptAssembler") as mock_assembler_cls:
+        with patch("prompt_template.PromptAssembler") as mock_assembler_cls:
             mock_assembler = MagicMock()
             mock_assembler.assemble.return_value = [
                 {"role": "system", "content": "RAG system prompt"},
@@ -114,7 +114,7 @@ class TestBuildVariantMessages:
 
     def test_rag_variant_passes_max_generation_tokens(self):
         build = self._get_build_fn()
-        with patch("benchmark_utils.PromptAssembler") as mock_assembler_cls:
+        with patch("prompt_template.PromptAssembler") as mock_assembler_cls:
             mock_assembler = MagicMock()
             mock_assembler.assemble.return_value = [
                 {"role": "system", "content": "RAG system prompt"},
