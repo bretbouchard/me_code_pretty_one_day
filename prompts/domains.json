@@ -1,0 +1,18 @@
+{
+  "swift": {
+    "queries": ["swiftui", "swift async", "swift pattern", "swift concurrency"],
+    "tags": ["swift", "swiftui", "apple"]
+  },
+  "python": {
+    "queries": ["python", "python pattern", "python utility"],
+    "tags": ["python", "scripting"]
+  },
+  "juce": {
+    "queries": ["audio", "juce", "dsp", "audio plugin"],
+    "tags": ["audio", "juce", "dsp"]
+  },
+  "pcb": {
+    "queries": ["pcb layout", "kicad", "circuit design"],
+    "tags": ["pcb", "kicad", "electronics"]
+  }
+}
