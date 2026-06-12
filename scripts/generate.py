@@ -37,6 +37,7 @@ def generate_with_rag(
     temperature: float = 0.2,
     no_rag: bool = False,
     verbose: bool = False,
+    assembler: PromptAssembler | None = None,
 ) -> str | None:
     """Generate code with optional RAG context from Confucius.
 
@@ -50,11 +51,14 @@ def generate_with_rag(
         temperature: Sampling temperature (0.0 = deterministic).
         no_rag: If True, skip Confucius retrieval entirely.
         verbose: If True, print timing and debug information.
+        assembler: Optional pre-built PromptAssembler. If None, a new one
+            is created from model_path (expensive: loads tokenizer from disk).
 
     Returns:
         Generated code string, or None on error.
     """
-    assembler = PromptAssembler(model_path)
+    if assembler is None:
+        assembler = PromptAssembler(model_path)
 
     # Step 1: Retrieve patterns (unless --no-rag)
     patterns = []
