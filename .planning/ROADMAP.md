@@ -111,15 +111,13 @@ Plans:
 
 **Requirements:** LAKE-11 to LAKE-17
 
-**Plans:**
-| Plan | Description |
-|------|-------------|
-| 5.1 | Confucius RAG retrieval integrated into prompt assembly |
-| 5.2 | SLC coding standards system prompt template |
-| 5.3 | Domain-specific retrieval (Swift, Python, JUCE, PCB patterns) |
-| 5.4 | Context window budget management (RAG + prompt + generation) |
-| 5.5 | HumanEval-based benchmark comparing base/fine-tuned/RAG variants |
-| 5.6 | Final latency and quality report |
+**Plans:** 4 plans
+
+Plans:
+- [ ] 05-01-PLAN.md -- RAG foundation: SLC system prompt, domain mapping, PromptAssembler with token budget, Confucius pattern seeder (LAKE-11, LAKE-12, LAKE-13, LAKE-14)
+- [ ] 05-02-PLAN.md -- Generation pipeline: generate.py CLI chaining confucius -> prompt assembly -> Ollama inference (LAKE-11)
+- [ ] 05-03-PLAN.md -- HumanEval benchmark: pass@k evaluation comparing base/finetuned/RAG variants (LAKE-15, LAKE-16)
+- [ ] 05-04-PLAN.md -- Latency/throughput per variant: extend existing benchmark scripts with --variant flag (LAKE-17)
 
 **Success Criteria:**
 - [ ] RAG retrieval returns relevant domain patterns in <100ms
@@ -140,4 +138,4 @@ Phase 1 and 2 (Rick work) are independent from Phase 3-5 (Local AI work).
 
 ---
 *Roadmap created: 2026-06-10*
-*Last updated: 2026-06-12 after Phase 1 planning*
+*Last updated: 2026-06-12 after Phase 5 planning*
