@@ -83,6 +83,11 @@ def _load_slc_prompt() -> str:
         with open(SLC_SYSTEM_PATH, "r", encoding="utf-8") as f:
             return f.read()
     except FileNotFoundError:
+        print(
+            f"WARNING: SLC system prompt not found at {SLC_SYSTEM_PATH} -- "
+            "finetuned variant will use empty system prompt",
+            file=sys.stderr,
+        )
         return ""
 
 
