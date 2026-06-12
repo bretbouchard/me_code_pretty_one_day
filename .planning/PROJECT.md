@@ -14,26 +14,26 @@ Ship fast local code generation that works completely offline, never phones home
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] **LAKE-01**: Local model serving via Ollama or mlx_lm.server (Phase 3)
+- [x] **LAKE-02**: MLX-LoRA fine-tuning pipeline for Qwen2.5-Coder-7B (Phase 4)
+- [x] **LAKE-03**: Confucius RAG integration for domain patterns (Phase 5)
+- [x] **LAKE-04**: SLC coding standards system prompt injection (Phase 5)
+- [x] **LAKE-05**: Offline-first operation (zero network dependency) (Phase 5)
+- [x] **LAKE-06**: Sub-5s inference latency for code generation (Phase 3)
+- [x] **LAKE-07**: Training data generation (5000+ examples) (Phase 4)
+- [x] **LAKE-08**: Benchmark and evaluation framework (Phase 5)
+- [x] **RICK-01**: Update apple-elitist-rick with WWDC25/26 changes (Phase 1)
+- [x] **RICK-02**: Update gamer-rick with WWDC25/26 changes (Phase 1)
+- [x] **RICK-03**: Update swiftui-liquid-glass with WWDC25/26 changes (Phase 1)
+- [x] **RICK-04**: Update swift-concurrency-expert with WWDC25/26 changes (Phase 1)
+- [x] **RICK-05**: Create foundation-models-rick (Phase 2)
+- [x] **RICK-06**: Create metal-4-rick (Phase 2)
+- [x] **RICK-07**: Create privacy-rick (Phase 2)
+- [x] **RICK-08**: Create visionos-rick (Phase 2)
 
 ### Active
 
-- [ ] **LAKE-01**: Local model serving via Ollama or mlx_lm.server
-- [ ] **LAKE-02**: MLX-LoRA fine-tuning pipeline for Qwen2.5-Coder-7B
-- [ ] **LAKE-03**: Confucius RAG integration for domain patterns
-- [ ] **LAKE-04**: SLC coding standards system prompt injection
-- [ ] **LAKE-05**: Offline-first operation (zero network dependency)
-- [ ] **LAKE-06**: Sub-5s inference latency for code generation
-- [ ] **LAKE-07**: Training data generation (5000+ examples)
-- [ ] **LAKE-08**: Benchmark and evaluation framework
-- [ ] **RICK-01**: Update apple-elitist-rick with WWDC25/26 changes
-- [ ] **RICK-02**: Update gamer-rick with WWDC25/26 changes
-- [ ] **RICK-03**: Update swiftui-liquid-glass with WWDC25/26 changes
-- [ ] **RICK-04**: Update swift-concurrency-expert with WWDC25/26 changes
-- [ ] **RICK-05**: Create foundation-models-rick
-- [ ] **RICK-06**: Create metal-4-rick
-- [ ] **RICK-07**: Create privacy-rick
-- [ ] **RICK-08**: Create visionos-rick
+(None — all requirements validated)
 
 ### Out of Scope
 
