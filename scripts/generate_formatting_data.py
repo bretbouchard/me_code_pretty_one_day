@@ -16,6 +16,8 @@ Usage:
   python3 scripts/generate_formatting_data.py --samples 500 --output data/formatting_val.jsonl --seed 42
 """
 
+import glob
+
 import argparse
 import json
 import os
@@ -1060,6 +1062,39 @@ def generate_refactor_dataset(num_samples, seed):
     return samples
 
 
+# Scraped corpus uses short directory names — map to language keys
+CORPUS_DIR_NAMES = {
+    "python": ["py", "pyi"],
+    "javascript": ["js"],
+    "typescript": ["ts", "d.ts"],
+    "rust": ["rs"],
+}
+
+
+def load_corpus_files(corpus_dir: str, lang: str, max_files: int) -> list[str]:
+    """Load scraped code files from a corpus directory."""
+    if not corpus_dir or not os.path.isdir(corpus_dir):
+        return []
+    snippets = []
+    dir_names = CORPUS_DIR_NAMES.get(lang, [lang])
+    for subdir in dir_names:
+        pattern = os.path.join(corpus_dir, subdir, "*")
+        files = sorted(glob.glob(pattern), key=lambda p: os.path.basename(p))
+        for fpath in files:
+            if len(snippets) >= max_files:
+                break
+            try:
+                code = Path(fpath).read_text(encoding="utf-8")
+                lines = code.splitlines()
+                # Keep files that fit within token budget: ~80 lines and ~2500 chars
+                # (minified + formatted pairs must both fit under 1024 tokens)
+                if 5 <= len(lines) <= 80 and len(code) <= 2500:
+                    snippets.append(code)
+            except Exception:
+                continue
+    return snippets
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Generate code quality training data (formatting, lint-fixing, refactoring)'
@@ -1090,6 +1125,10 @@ def main():
         help='Number of refactoring samples (default: 100)',
     )
     parser.add_argument(
+        '--corpus-dir', type=str, default=None,
+        help='Directory of scraped real code files to supplement formatting corpus',
+    )
+    parser.add_argument(
         '--formatting-samples', type=int, default=None,
         help='Number of formatting samples (default: samples - lint - refactor)',
     )
@@ -1104,6 +1143,25 @@ def main():
 
     # Formatting samples (from real formatters)
     if fmt_samples > 0:
+        # Supplement built-in corpus with scraped files if available
+        corpus_map = {
+            "python": PYTHON_CORPUS,
+            "javascript": JS_CORPUS,
+            "typescript": TS_CORPUS,
+            "rust": RUST_CORPUS,
+        }
+        scraped_total = 0
+        if args.corpus_dir:
+            print(f"\n  Loading scraped corpus from {args.corpus_dir}")
+            for lang, corpus_list in corpus_map.items():
+                scraped = load_corpus_files(args.corpus_dir, lang, 200)
+                if scraped:
+                    corpus_list.extend(scraped)
+                    scraped_total += len(scraped)
+                    print(f"    {lang}: +{len(scraped)} scraped (total: {len(corpus_list)})")
+            if scraped_total == 0:
+                print("    No scraped files found")
+
         print(f"\n  Formatting: {fmt_samples} samples")
         print(f"    Corpus: Python={len(PYTHON_CORPUS)}, "
               f"JS={len(JS_CORPUS)}, TS={len(TS_CORPUS)}, Rust={len(RUST_CORPUS)}")

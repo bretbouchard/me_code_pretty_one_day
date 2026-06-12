@@ -31,8 +31,10 @@ lora_parameters:
     - "self_attn.k_proj"
     - "self_attn.v_proj"
     - "self_attn.o_proj"
-  rank: 32
-  scale: 64.0
+    - "mlp.up_proj"
+    - "mlp.down_proj"
+  rank: 64                                     # Higher rank for more capacity
+  scale: 128.0                                  # Alpha = 2x rank
   dropout: 0.0
 
 # --- Learning Rate Schedule ---

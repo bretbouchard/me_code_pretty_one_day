@@ -1,0 +1,76 @@
+{
+  "repos": [
+    [
+      "python",
+      "python/cpython",
+      "Lib/"
+    ],
+    [
+      "python",
+      "python/typeshed",
+      "stdlib/"
+    ],
+    [
+      "python",
+      "pallets/flask",
+      "src/flask/"
+    ],
+    [
+      "python",
+      "python/cpython",
+      "Tools/"
+    ],
+    [
+      "python",
+      "psf/black",
+      ""
+    ],
+    [
+      "javascript",
+      "nodejs/node",
+      "lib/"
+    ],
+    [
+      "javascript",
+      "lodash/lodash",
+      ""
+    ],
+    [
+      "javascript",
+      "expressjs/express",
+      "lib/"
+    ],
+    [
+      "typescript",
+      "microsoft/TypeScript",
+      "src/"
+    ],
+    [
+      "typescript",
+      " DefinitelyTyped/DefinitelyTyped",
+      "types/node/"
+    ],
+    [
+      "rust",
+      "rust-lang/rust",
+      "library/std/src/"
+    ],
+    [
+      "rust",
+      "serde-rs/serde",
+      "src/"
+    ],
+    [
+      "rust",
+      "tokio-rs/tokio",
+      "tokio/src/"
+    ]
+  ],
+  "total": 74,
+  "per_lang": {
+    "python": 58,
+    "javascript": 12,
+    "typescript": 0,
+    "rust": 4
+  }
+}

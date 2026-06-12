@@ -23,6 +23,7 @@ import ast
 import json
 import os
 import statistics
+import subprocess
 import sys
 import time
 import urllib.request
@@ -258,15 +259,25 @@ def print_comparison_table(
     base_types_pct = (base_types / n) * 100
     ft_types_pct = (ft_types / n) * 100
 
+    # Format accuracy (diff-based)
+    base_fmt_accs = [r["format_accuracy"]["accuracy"] for r in base_results if "format_accuracy" in r]
+    ft_fmt_accs = [r["format_accuracy"]["accuracy"] for r in ft_results if "format_accuracy" in r]
+    base_fmt_exact = sum(1 for r in base_results if r.get("format_accuracy", {}).get("exact", False))
+    ft_fmt_exact = sum(1 for r in ft_results if r.get("format_accuracy", {}).get("exact", False))
+    base_fmt_avg = statistics.mean(base_fmt_accs) if base_fmt_accs else 0
+    ft_fmt_avg = statistics.mean(ft_fmt_accs) if ft_fmt_accs else 0
+    base_fmt_exact_pct = (base_fmt_exact / n) * 100
+    ft_fmt_exact_pct = (ft_fmt_exact / n) * 100
+
     print()
     print(f"{'='*60}")
     print("  Base vs Fine-Tuned Comparison")
     print(f"{'='*60}")
     print()
-    print(f"{'Model':<16} | {'Avg Time':>8} | {'Avg Tokens':>10} | {'Syntax OK':>9} | {'Has Docs':>9} | {'Has Types':>10}")
-    print(f"{'-'*16}-+-{'-'*8}-+-{'-'*10}-+-{'-'*9}-+-{'-'*9}-+-{'-'*10}")
-    print(f"{'base':<16} | {base_avg_time:>7.1f}s | {base_avg_tokens:>10.0f} | {base_syntax_pct:>8.0f}% | {base_docs_pct:>8.0f}% | {base_types_pct:>9.0f}%")
-    print(f"{'fine-tuned':<16} | {ft_avg_time:>7.1f}s | {ft_avg_tokens:>10.0f} | {ft_syntax_pct:>8.0f}% | {ft_docs_pct:>8.0f}% | {ft_types_pct:>9.0f}%")
+    print(f"{'Model':<16} | {'Avg Time':>8} | {'Avg Tokens':>10} | {'Syntax OK':>9} | {'Fmt Acc':>8} | {'Exact':>6} | {'Has Docs':>9} | {'Has Types':>10}")
+    print(f"{'-'*16}-+-{'-'*8}-+-{'-'*10}-+-{'-'*9}-+-{'-'*8}-+-{'-'*6}-+-{'-'*9}-+-{'-'*10}")
+    print(f"{'base':<16} | {base_avg_time:>7.1f}s | {base_avg_tokens:>10.0f} | {base_syntax_pct:>8.0f}% | {base_fmt_avg:>7.0%} | {base_fmt_exact_pct:>5.0f}% | {base_docs_pct:>8.0f}% | {base_types_pct:>9.0f}%")
+    print(f"{'fine-tuned':<16} | {ft_avg_time:>7.1f}s | {ft_avg_tokens:>10.0f} | {ft_syntax_pct:>8.0f}% | {ft_fmt_avg:>7.0%} | {ft_fmt_exact_pct:>5.0f}% | {ft_docs_pct:>8.0f}% | {ft_types_pct:>9.0f}%")
     print()
 
     # Improvement percentages
@@ -295,6 +306,11 @@ def print_comparison_table(
         types_change = ft_types_pct - base_types_pct
         improvements.append(f"  Types:     {types_change:+.1f}pp")
 
+    if base_fmt_accs or ft_fmt_accs:
+        fmt_change = (ft_fmt_avg - base_fmt_avg) * 100
+        improvements.append(f"  Fmt Acc:   {fmt_change:+.1f}pp")
+        improvements.append(f"  Exact:     {ft_fmt_exact_pct - base_fmt_exact_pct:+.0f}pp")
+
     for line in improvements:
         print(line)
 
@@ -303,6 +319,98 @@ def print_comparison_table(
 
 
 # --- Inline mode (no server required) ---
+
+def _detect_language(code: str) -> str:
+    """Detect programming language from code content."""
+    if any(k in code for k in ["fn ", "pub ", "impl ", "struct ", "enum ", "use ", "#[derive"]):
+        return "rust"
+    if any(k in code for k in ["func ", "var ", "let ", "protocol ", "extension ", "struct "]):
+        return "swift"
+    if any(k in code for k in ["interface ", ": string", ": number", ": boolean", "=>", "<T>", "as Error"]):
+        return "typescript"
+    if any(k in code for k in ["const ", "function ", "class ", "async function", "module.exports", "=>"]):
+        return "javascript"
+    if any(k in code for k in ["def ", "import ", "from ", "@dataclass", "class ", "self."]):
+        return "python"
+    return "unknown"
+
+
+def _format_code(code: str, lang: str) -> str:
+    """Format code using the appropriate real formatter. Returns original on failure."""
+    try:
+        if lang == "python":
+            proc = subprocess.run(
+                ["black", "-", "--quiet", "--line-length=88"],
+                input=code.encode("utf-8"), capture_output=True, timeout=10,
+            )
+            if proc.returncode == 0:
+                return proc.stdout.decode("utf-8")
+        elif lang in ("javascript", "typescript"):
+            parser = "typescript" if lang == "typescript" else "babel"
+            proc = subprocess.run(
+                ["prettier", "--parser", parser, "--single-quote"],
+                input=code.encode("utf-8"), capture_output=True, timeout=10,
+            )
+            if proc.returncode == 0:
+                return proc.stdout.decode("utf-8")
+        elif lang == "rust":
+            proc = subprocess.run(
+                ["rustfmt"], input=code.encode("utf-8"), capture_output=True, timeout=10,
+            )
+            if proc.returncode == 0:
+                return proc.stdout.decode("utf-8")
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+    return code
+
+
+def _format_accuracy(content: str) -> dict:
+    """Measure how closely model output matches real formatter output.
+
+    Returns dict with:
+      - accuracy: 0.0-1.0 (fraction of characters matching after normalization)
+      - exact: bool (perfect match)
+      - language: detected language
+    """
+    blocks = extract_code_blocks(content)
+    if not blocks:
+        return {"accuracy": 0.0, "exact": False, "language": "unknown"}
+    code = max(blocks, key=len)
+    lang = _detect_language(code)
+
+    if lang == "unknown":
+        return {"accuracy": 0.0, "exact": False, "language": lang}
+
+    # Normalize model output (strip trailing whitespace per line)
+    model_lines = [l.rstrip() for l in code.strip().splitlines()]
+
+    # Get canonical formatting
+    canonical = _format_code(code, lang)
+    canonical_lines = [l.rstrip() for l in canonical.strip().splitlines()]
+
+    # If model output is empty or canonical is empty
+    if not model_lines or not canonical_lines:
+        return {"accuracy": 0.0, "exact": False, "language": lang}
+
+    # Compare line by line (handles different lengths gracefully)
+    matching_chars = 0
+    total_chars = 0
+    for i in range(max(len(canonical_lines), len(model_lines))):
+        canon_line = canonical_lines[i] if i < len(canonical_lines) else ""
+        model_line = model_lines[i] if i < len(model_lines) else ""
+        # Count matching characters
+        for a, b in zip(canon_line, model_line):
+            total_chars += 1
+            if a == b:
+                matching_chars += 1
+        # Count extra chars as mismatches
+        total_chars += abs(len(canon_line) - len(model_line))
+
+    accuracy = matching_chars / total_chars if total_chars > 0 else 0.0
+    exact = code.strip() == canonical.strip()
+
+    return {"accuracy": accuracy, "exact": exact, "language": lang}
+
 
 def _is_rust(code: str) -> bool:
     return any(k in code for k in ["fn ", "pub ", "impl ", "struct ", "enum ", "use ", "#[derive"])
@@ -488,7 +596,8 @@ def main():
             # Base
             b_resp = _inline_generate(base_model, base_tokenizer, messages, args.max_tokens)
             b_q = _evaluate_inline(b_resp["content"])
-            base_results.append({**b_resp, "quality": b_q})
+            b_fmt = _format_accuracy(b_resp["content"])
+            base_results.append({**b_resp, "quality": b_q, "format_accuracy": b_fmt})
             if not b_resp["error"]:
                 base_times.append(b_resp["elapsed_sec"])
                 base_tokens.append(b_resp["completion_tokens"])
@@ -496,7 +605,8 @@ def main():
             # Fine-tuned
             f_resp = _inline_generate(ft_model, ft_tokenizer, messages, args.max_tokens)
             f_q = _evaluate_inline(f_resp["content"])
-            ft_results.append({**f_resp, "quality": f_q})
+            f_fmt = _format_accuracy(f_resp["content"])
+            ft_results.append({**f_resp, "quality": f_q, "format_accuracy": f_fmt})
             if not f_resp["error"]:
                 ft_times.append(f_resp["elapsed_sec"])
                 ft_tokens.append(f_resp["completion_tokens"])
