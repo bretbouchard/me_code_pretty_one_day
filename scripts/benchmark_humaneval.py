@@ -47,6 +47,8 @@ def pass_at_k(n: int, c: int, k: int) -> float:
     Returns:
         Probability that at least one of k samples passes all tests.
     """
+    if k > n:
+        return 1.0 if c == n else 0.0
     if n - c < k:
         return 1.0
     return 1.0 - math.comb(n - c, k) / math.comb(n, k)

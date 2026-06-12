@@ -48,6 +48,14 @@ class TestPassAtK:
         """Test 4: pass_at_k(5, 5, 10) returns 1.0 when n-c < k."""
         assert pass_at_k(5, 5, 10) == 1.0
 
+    def test_pass_at_k_k_greater_than_n_all_correct(self) -> None:
+        """pass_at_k returns 1.0 when k > n and all samples are correct."""
+        assert pass_at_k(2, 2, 100) == 1.0
+
+    def test_pass_at_k_k_greater_than_n_not_all_correct(self) -> None:
+        """pass_at_k returns 0.0 when k > n and not all samples are correct."""
+        assert pass_at_k(2, 1, 100) == 0.0
+
 
 # --- extract_completion tests (Tests 5-6) ---
 
