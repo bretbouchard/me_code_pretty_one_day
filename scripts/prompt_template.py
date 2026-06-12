@@ -146,24 +146,27 @@ class PromptAssembler:
         user_prompt: str,
         domain: str = "python",
         max_generation_tokens: int = 2048,
+        skip_rag: bool = False,
     ) -> list[dict]:
         """Build chat messages with system+RAG+user within context budget.
 
-        Retrieves RAG patterns for the domain, combines with SLC system
-        prompt and user prompt, then checks token budget. If the combined
-        prompt exceeds the context window minus generation tokens, patterns
-        are iteratively removed from the end until budget fits.
+        Retrieves RAG patterns for the domain (unless skip_rag is True),
+        combines with SLC system prompt and user prompt, then checks token
+        budget. If the combined prompt exceeds the context window minus
+        generation tokens, patterns are iteratively removed from the end
+        until budget fits.
 
         Args:
             user_prompt: The user's code generation request.
             domain: Domain tag for RAG retrieval (e.g. "swift", "python").
             max_generation_tokens: Tokens reserved for model output.
+            skip_rag: If True, skip Confucius retrieval and use SLC prompt only.
 
         Returns:
             List of message dicts with "role" and "content" keys.
             Always returns at least [system_message, user_message].
         """
-        patterns = self.retrieve_patterns(domain)
+        patterns = [] if skip_rag else self.retrieve_patterns(domain)
 
         # Build RAG section
         rag_section = ""
