@@ -601,7 +601,7 @@ Source: [VERIFIED] All components tested individually on 2026-06-12: Ollama API 
 
 **If this table is empty:** All claims in this research were verified or cited -- no user confirmation needed.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Which adapter variant is "best" for Phase 5 benchmarking?**
    - What we know: Phase 4 produced 4 variants: `adapters/` (rank 32, 1000 steps), `adapters-600/` (600 steps), `adapters-1200/` (1200 steps), `adapters-formatting/` (2000 steps, formatting-focused). The default in `benchmark_compare.py` is `adapters-600`.
