@@ -1,8 +1,15 @@
-"""Tests for prompt template: SLC system prompt, domain mapping, and prompt assembly."""
+"""Tests for prompt template: SLC system prompt, domain mapping, and prompt assembly.
+
+Import convention:
+  - Tests add scripts/ to sys.path and use bare imports (e.g., from prompt_template import ...).
+  - Patching uses the bare module path (e.g., patch("prompt_template.subprocess.run")).
+  - This matches the convention used by all production scripts and other test files.
+"""
 
 import json
 import os
 import subprocess
+import sys
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -11,6 +18,9 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROMPTS_DIR = os.path.join(PROJECT_ROOT, "prompts")
 SLC_SYSTEM_PATH = os.path.join(PROMPTS_DIR, "slc_system.txt")
 DOMAINS_PATH = os.path.join(PROMPTS_DIR, "domains.json")
+
+# Ensure scripts directory is importable for bare imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
 class TestSLCSystemPrompt:
@@ -149,8 +159,8 @@ class TestPromptAssembler:
         }
         (prompts_dir / "domains.json").write_text(json.dumps(domains))
 
-        with patch("scripts.prompt_template.PROJECT_ROOT", str(tmp_path)):
-            from scripts.prompt_template import PromptAssembler
+        with patch("prompt_template.PROJECT_ROOT", str(tmp_path)):
+            from prompt_template import PromptAssembler
             assembler = PromptAssembler.__new__(PromptAssembler)
             assembler.tokenizer = mock_tokenizer
             assembler.max_context = 32768
@@ -163,8 +173,8 @@ class TestPromptAssembler:
         mock_tokenizer = MagicMock()
         mock_tokenizer.apply_chat_template = MagicMock(return_value=[1] * 100)
 
-        with patch("scripts.prompt_template.AutoTokenizer", return_value=mock_tokenizer):
-            from scripts.prompt_template import PromptAssembler
+        with patch("prompt_template.AutoTokenizer", return_value=mock_tokenizer):
+            from prompt_template import PromptAssembler
             pa = PromptAssembler.__new__(PromptAssembler)
             pa.tokenizer = mock_tokenizer
             pa.max_context = 32768
@@ -178,7 +188,7 @@ class TestPromptAssembler:
         with open(DOMAINS_PATH, "r", encoding="utf-8") as f:
             expected = json.load(f)
 
-        from scripts.prompt_template import load_domains_mapping
+        from prompt_template import load_domains_mapping
         result = load_domains_mapping()
         assert result == expected
 
@@ -192,7 +202,7 @@ class TestPromptAssembler:
             "metadata": {"tags": ["swift"]},
         })
 
-        with patch("scripts.prompt_template.subprocess.run") as mock_run:
+        with patch("prompt_template.subprocess.run") as mock_run:
             mock_run.side_effect = [
                 MagicMock(stdout=mock_search_output, returncode=0),  # search
                 MagicMock(stdout=mock_get_output, returncode=0),      # get
@@ -262,14 +272,14 @@ class TestPromptAssembler:
 
     def test_retrieve_patterns_empty_on_no_results(self, assembler):
         """retrieve_patterns returns empty list when confucius search returns no results."""
-        with patch("scripts.prompt_template.subprocess.run") as mock_run:
+        with patch("prompt_template.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(stdout="No results found.", returncode=0)
             patterns = assembler.retrieve_patterns("nonexistent")
             assert patterns == []
 
     def test_retrieve_patterns_empty_on_timeout(self, assembler):
         """retrieve_patterns returns empty list when confucius CLI times out."""
-        with patch("scripts.prompt_template.subprocess.run") as mock_run:
+        with patch("prompt_template.subprocess.run") as mock_run:
             mock_run.side_effect = subprocess.TimeoutExpired(cmd="confucius", timeout=10)
             patterns = assembler.retrieve_patterns("swift")
             assert patterns == []
@@ -284,7 +294,7 @@ class TestPromptAssembler:
             "metadata": {"tags": ["test"]},
         })
 
-        with patch("scripts.prompt_template.subprocess.run") as mock_run:
+        with patch("prompt_template.subprocess.run") as mock_run:
             mock_run.side_effect = [
                 MagicMock(stdout=mock_search_output, returncode=0),
                 MagicMock(stdout=mock_get_output, returncode=0),
