@@ -13,6 +13,8 @@ import urllib.request
 
 import pytest
 
+pytestmark = pytest.mark.filterwarnings("ignore::DeprecationWarning")
+
 # Ensure scripts directory is importable
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__))))
 
