@@ -62,8 +62,11 @@ class PromptAssembler:
             model_path: Path to the model directory containing tokenizer config.
             max_context: Maximum context window size in tokens (default: 32768 for Qwen2.5-Coder-7B).
         """
+        # trust_remote_code=False: prevents arbitrary code execution from
+        # untrusted tokenizer configs. Standard Qwen2.5-Coder models work
+        # with the default tokenizer -- no custom code needed.
         self.tokenizer = AutoTokenizer.from_pretrained(
-            model_path, trust_remote_code=True
+            model_path, trust_remote_code=False
         )
         self.max_context = max_context
         self.slc_prompt = self._load_slc_prompt()
