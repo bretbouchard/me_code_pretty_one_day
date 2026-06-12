@@ -21,17 +21,20 @@
 
 **Plans:** 4 plans
 
-Plans:
-- [ ] 01-01-PLAN.md -- Update apple-elitist-rick with WWDC26 (SiriKit deprecation, App Intents, UISceneDelegate, Swift 6.4, Xcode 27, cross-references to new Ricks)
-- [ ] 01-02-PLAN.md -- Update gamer-rick with WWDC26 (Logitech Muse, MetalFX, frame interpolation, Liquid Glass intensity, cross-references to metal-4-rick and visionos-rick)
-- [ ] 01-03-PLAN.md -- Update swiftui-liquid-glass with WWDC26 (Liquid Glass intensity switch, TextEditor rich text, spatial layout refinements, Swift 6.4 concurrency, cross-reference to visionos-rick)
-- [ ] 01-04-PLAN.md -- Update swift-concurrency-expert with WWDC26 (Swift 6.4 ergonomics, auto-generated C++ bindings, `sending` convention, module-level default isolation, Java interop updates)
+Plans: 4 plans (4 complete)
+
+- [x] 01-01-PLAN.md -- Update apple-elitist-rick with WWDC26 (SiriKit deprecation, App Intents, UISceneDelegate, Swift 6.4, Xcode 27, cross-references to new Ricks)
+- [x] 01-02-PLAN.md -- Update gamer-rick with WWDC26 (Logitech Muse, MetalFX, frame interpolation, Liquid Glass intensity, cross-references to metal-4-rick and visionos-rick)
+- [x] 01-03-PLAN.md -- Update swiftui-liquid-glass with WWDC26 (Liquid Glass intensity switch, TextEditor rich text, spatial layout refinements, Swift 6.4 concurrency, cross-reference to visionos-rick)
+- [x] 01-04-PLAN.md -- Update swift-concurrency-expert with WWDC26 (Swift 6.4 ergonomics, auto-generated C++ bindings, `sending` convention, module-level default isolation, Java interop updates)
 
 **Success Criteria:**
-- [ ] Each Rick agent file includes all WWDC25/26 framework additions
-- [ ] Deprecated APIs documented with migration paths
-- [ ] New API types and protocols referenced with correct signatures
-- [ ] No stale pre-WWDC25 information remains uncorrected
+- [x] Each Rick agent file includes all WWDC25/26 framework additions
+- [x] Deprecated APIs documented with migration paths
+- [x] New API types and protocols referenced with correct signatures
+- [x] No stale pre-WWDC25 information remains uncorrected
+
+**Completed:** 2026-06-12
 
 ## Phase 2: New Domain Ricks
 

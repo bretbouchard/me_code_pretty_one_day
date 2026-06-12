@@ -98,10 +98,10 @@ Deferred to future release. Tracked but not in current roadmap.
 | LAKE-15 | Phase 5 | Pending |
 | LAKE-16 | Phase 5 | Pending |
 | LAKE-17 | Phase 5 | Pending |
-| RICK-01 | Phase 1 | Pending |
-| RICK-02 | Phase 1 | Pending |
-| RICK-03 | Phase 1 | Pending |
-| RICK-04 | Phase 1 | Pending |
+| RICK-01 | Phase 1 | Complete |
+| RICK-02 | Phase 1 | Complete |
+| RICK-03 | Phase 1 | Complete |
+| RICK-04 | Phase 1 | Complete |
 | RICK-05 | Phase 2 | Pending |
 | RICK-06 | Phase 2 | Pending |
 | RICK-07 | Phase 2 | Pending |
