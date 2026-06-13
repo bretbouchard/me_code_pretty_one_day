@@ -1,0 +1,128 @@
+[
+  {
+    "system": "You are an expert Python developer. Write clean, well-documented code with type hints.",
+    "user_prompt": "Write a Python function that reads a CSV file and returns a list of dictionaries, where each dictionary represents a row using the header as keys.",
+    "response": "import csv\nfrom typing import List, Dict\n\ndef read_csv_to_dicts(filepath: str, delimiter: str = ',') -> List[Dict[str, str]]:\n    \"\"\"Read a CSV file and return a list of dictionaries.\n    \n    Args:\n        filepath: Path to the CSV file.\n        delimiter: Column delimiter character.\n    \n    Returns:\n        List of dicts where each dict represents a row with header keys.\n    \n    Raises:\n        FileNotFoundError: If the file does not exist.\n        ValueError: If rows have inconsistent column counts.\n    \"\"\"\n    with open(filepath, 'r', newline='', encoding='utf-8') as f:\n        reader = csv.DictReader(f, delimiter=delimiter)\n        if reader.fieldnames is None:\n            return []\n        result = []\n        for row in reader:\n            result.append(dict(row))\n        return result",
+    "difficulty": "easy",
+    "tags": ["file-io", "csv", "data-processing"]
+  },
+  {
+    "system": "You are an expert Python developer. Write clean, well-documented code with type hints.",
+    "user_prompt": "Implement a binary search function in Python that works on a sorted list and returns the index of the target, or -1 if not found.",
+    "response": "from typing import List, Any\n\ndef binary_search(sorted_list: List[Any], target: Any) -> int:\n    \"\"\"Perform binary search on a sorted list.\n    \n    Args:\n        sorted_list: A list sorted in ascending order.\n        target: The value to search for.\n    \n    Returns:\n        Index of the target if found, -1 otherwise.\n    \"\"\"\n    left = 0\n    right = len(sorted_list) - 1\n    while left <= right:\n        mid = (left + right) // 2\n        if sorted_list[mid] == target:\n            return mid\n        elif sorted_list[mid] < target:\n            left = mid + 1\n        else:\n            right = mid - 1\n    return -1",
+    "difficulty": "easy",
+    "tags": ["algorithms", "search", "sorting"]
+  },
+  {
+    "system": "You are an expert Python developer. Write clean, well-documented code with type hints.",
+    "user_prompt": "Write a Python decorator that caches the return value of a function for a given number of seconds.",
+    "response": "import time\nimport functools\nfrom typing import Any, Callable, TypeVar\n\nF = TypeVar('F', bound=Callable[..., Any])\n\ndef timed_cache(seconds: int) -> Callable[[F], F]:\n    \"\"\"Cache function return value for a specified duration.\n    \n    Args:\n        seconds: Number of seconds to cache the result.\n    \n    Usage:\n        @timed_cache(60)\n        def expensive_query():\n            ...\n    \"\"\"\n    def decorator(func: F) -> F:\n        cached_result = None\n        cached_time = 0.0\n\n        @functools.wraps(func)\n        def wrapper(*args: Any, **kwargs: Any) -> Any:\n            nonlocal cached_result, cached_time\n            now = time.time()\n            if now - cached_time >= seconds:\n                cached_result = func(*args, **kwargs)\n                cached_time = now\n            return cached_result\n        return wrapper  # type: ignore\n    return decorator",
+    "difficulty": "medium",
+    "tags": ["decorators", "caching", "performance"]
+  },
+  {
+    "system": "You are an expert Python developer. Write clean, well-documented code with type hints.",
+    "user_prompt": "Implement a context manager that measures and prints the execution time of a code block.",
+    "response": "import time\nfrom typing import Optional\n\nclass Timer:\n    \"\"\"Context manager to measure execution time of a code block.\n    \n    Usage:\n        with Timer('My operation'):\n            do_something()\n    \"\"\"\n\n    def __init__(self, name: Optional[str] = None) -> None:\n        self.name = name\n        self.elapsed: float = 0.0\n        self._start: float = 0.0\n\n    def __enter__(self) -> 'Timer':\n        self._start = time.perf_counter()\n        return self\n\n    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:\n        self.elapsed = time.perf_counter() - self._start\n        label = self.name or 'Code block'\n        print(f'{label} took {self.elapsed:.4f}s')\n        return False",
+    "difficulty": "easy",
+    "tags": ["context-managers", "timing", "performance"]
+  },
+  {
+    "system": "You are an expert Python developer. Write clean, well-documented code with type hints.",
+    "user_prompt": "Write an async Python function that fetches multiple URLs concurrently and returns a list of status codes.",
+    "response": "import asyncio\nfrom typing import List\nimport urllib.request\nimport urllib.error\n\nasync def fetch_url(url: str) -> int:\n    \"\"\"Fetch a single URL and return its HTTP status code.\n    \n    Args:\n        url: The URL to fetch.\n    \n    Returns:\n        HTTP status code, or -1 on error.\n    \"\"\"\n    loop = asyncio.get_event_loop()\n    try:\n        def _fetch() -> int:\n            req = urllib.request.Request(url, method='GET')\n            with urllib.request.urlopen(req, timeout=10) as resp:\n                return resp.status\n        return await loop.run_in_executor(None, _fetch)\n    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError):\n        return -1\n\nasync def fetch_multiple_urls(urls: List[str]) -> List[int]:\n    \"\"\"Fetch multiple URLs concurrently.\n    \n    Args:\n        urls: List of URLs to fetch.\n    \n    Returns:\n        List of HTTP status codes in the same order as input URLs.\n    \"\"\"\n    tasks = [fetch_url(url) for url in urls]\n    return await asyncio.gather(*tasks)",
+    "difficulty": "medium",
+    "tags": ["async", "networking", "concurrency"]
+  },
+  {
+    "system": "You are an expert Python developer. Write clean, well-documented code with type hints.",
+    "user_prompt": "Write a Python function that flattens a nested list of arbitrary depth into a single flat list.",
+    "response": "from typing import List, Any, Iterable\n\ndef flatten(nested: Iterable[Any]) -> List[Any]:\n    \"\"\"Flatten a nested iterable of arbitrary depth into a flat list.\n    \n    Args:\n        nested: A (possibly nested) iterable.\n    \n    Returns:\n        A flat list containing all non-iterable elements.\n    \n    Examples:\n        >>> flatten([1, [2, [3, 4]], 5])\n        [1, 2, 3, 4, 5]\n    \"\"\"\n    result: List[Any] = []\n    for item in nested:\n        if isinstance(item, (list, tuple)):\n            result.extend(flatten(item))\n        else:\n            result.append(item)\n    return result",
+    "difficulty": "easy",
+    "tags": ["algorithms", "recursion", "data-structures"]
+  },
+  {
+    "system": "You are an expert Python developer. Write clean, well-documented code with type hints.",
+    "user_prompt": "Implement an LRU (Least Recently Used) cache in Python with get and put methods, with a configurable maximum size.",
+    "response": "from collections import OrderedDict\nfrom typing import Any, Optional\n\nclass LRUCache:\n    \"\"\"Least Recently Used cache with O(1) get and put operations.\n    \n    Args:\n        capacity: Maximum number of items the cache can hold.\n    \n    Raises:\n        ValueError: If capacity is less than 1.\n    \"\"\"\n\n    def __init__(self, capacity: int) -> None:\n        if capacity < 1:\n            raise ValueError('capacity must be >= 1')\n        self.capacity = capacity\n        self._cache: OrderedDict = OrderedDict()\n\n    def get(self, key: Any) -> Optional[Any]:\n        \"\"\"Retrieve an item from the cache, marking it as recently used.\n        \n        Returns None if the key is not in the cache.\n        \"\"\"\n        if key not in self._cache:\n            return None\n        self._cache.move_to_end(key)\n        return self._cache[key]\n\n    def put(self, key: Any, value: Any) -> None:\n        \"\"\"Add or update an item in the cache.\n        \n        If the cache is full, evicts the least recently used item.\n        \"\"\"\n        if key in self._cache:\n            self._cache.move_to_end(key)\n            self._cache[key] = value\n        else:\n            if len(self._cache) >= self.capacity:\n                self._cache.popitem(last=False)\n            self._cache[key] = value\n\n    def __len__(self) -> int:\n        return len(self._cache)\n\n    def __contains__(self, key: Any) -> bool:\n        return key in self._cache",
+    "difficulty": "medium",
+    "tags": ["data-structures", "caching", "algorithms"]
+  },
+  {
+    "system": "You are an expert Python developer. Write clean, well-documented code with type hints.",
+    "user_prompt": "Write a Python CLI tool using argparse that counts lines, words, and characters in a file, similar to wc.",
+    "response": "import argparse\nimport os\nfrom typing import Tuple\n\ndef count_file(filepath: str) -> Tuple[int, int, int]:\n    \"\"\"Count lines, words, and characters in a file.\n    \n    Args:\n        filepath: Path to the file to count.\n    \n    Returns:\n        Tuple of (lines, words, characters).\n    \"\"\"\n    lines = 0\n    words = 0\n    characters = 0\n    with open(filepath, 'r', encoding='utf-8', errors='replace') as f:\n        for line in f:\n            lines += 1\n            characters += len(line)\n            words += len(line.split())\n    return lines, words, characters\n\ndef main() -> None:\n    parser = argparse.ArgumentParser(description='Count lines, words, and characters in files.')\n    parser.add_argument('files', nargs='+', help='Files to count')\n    args = parser.parse_args()\n    total_lines = 0\n    total_words = 0\n    total_chars = 0\n    for filepath in args.files:\n        if not os.path.isfile(filepath):\n            print(f'wc: {filepath}: No such file or directory')\n            continue\n        lines, words, chars = count_file(filepath)\n        total_lines += lines\n        total_words += words\n        total_chars += chars\n        print(f'{lines:>8} {words:>8} {chars:>8} {filepath}')\n    if len(args.files) > 1:\n        print(f'{total_lines:>8} {total_words:>8} {total_chars:>8} total')\n\nif __name__ == '__main__':\n    main()",
+    "difficulty": "medium",
+    "tags": ["cli", "argparse", "file-io"]
+  },
+  {
+    "system": "You are an expert Python developer. Write clean, well-documented code with type hints.",
+    "user_prompt": "Write a Python function that validates an email address using a regular expression and returns True or False.",
+    "response": "import re\nfrom typing import Pattern\n\n_EMAIL_PATTERN: Pattern = re.compile(\n    r'^[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$'\n)\n\ndef is_valid_email(email: str) -> bool:\n    \"\"\"Validate an email address using a regular expression.\n    \n    Args:\n        email: The email address string to validate.\n    \n    Returns:\n        True if the email matches the expected pattern, False otherwise.\n    \n    Examples:\n        >>> is_valid_email('user@example.com')\n        True\n        >>> is_valid_email('invalid-email')\n        False\n    \"\"\"\n    if not email or len(email) > 254:\n        return False\n    return bool(_EMAIL_PATTERN.match(email))",
+    "difficulty": "easy",
+    "tags": ["regex", "validation", "strings"]
+  },
+  {
+    "system": "You are an expert Python developer. Write clean, well-documented code with type hints.",
+    "user_prompt": "Implement a generic retry decorator in Python that retries a function on specified exceptions with exponential backoff.",
+    "response": "import time\nimport functools\nfrom typing import Any, Callable, Type, Tuple, TypeVar, Optional\n\nF = TypeVar('F', bound=Callable[..., Any])\n\ndef retry(\n    max_attempts: int = 3,\n    exceptions: Tuple[Type[Exception], ...] = (Exception,),\n    backoff_base: float = 2.0,\n    initial_delay: float = 1.0,\n) -> Callable[[F], F]:\n    \"\"\"Retry a function on specified exceptions with exponential backoff.\n    \n    Args:\n        max_attempts: Maximum number of attempts (including the first try).\n        exceptions: Tuple of exception types to catch and retry on.\n        backoff_base: Multiplier for each successive delay.\n        initial_delay: Delay before the first retry in seconds.\n    \n    Usage:\n        @retry(max_attempts=3, exceptions=(ConnectionError,))\n        def fetch_data():\n            ...\n    \"\"\"\n    def decorator(func: F) -> F:\n        @functools.wraps(func)\n        def wrapper(*args: Any, **kwargs: Any) -> Any:\n            last_exc: Optional[Exception] = None\n            for attempt in range(1, max_attempts + 1):\n                try:\n                    return func(*args, **kwargs)\n                except exceptions as exc:\n                    last_exc = exc\n                    if attempt < max_attempts:\n                        delay = initial_delay * (backoff_base ** (attempt - 1))\n                        time.sleep(delay)\n            raise last_exc  # type: ignore\n        return wrapper  # type: ignore\n    return decorator",
+    "difficulty": "medium",
+    "tags": ["decorators", "error-handling", "retry"]
+  },
+  {
+    "system": "You are an expert Python developer. Write clean, well-documented code with type hints.",
+    "user_prompt": "Write a Python function that merges two sorted lists into a single sorted list without using built-in sort.",
+    "response": "from typing import List, TypeVar, Iterable\n\nT = TypeVar('T')\n\ndef merge_sorted(a: List[T], b: List[T]) -> List[T]:\n    \"\"\"Merge two sorted lists into one sorted list in O(n+m) time.\n    \n    Args:\n        a: First sorted list.\n        b: Second sorted list.\n    \n    Returns:\n        A new sorted list containing all elements from both inputs.\n    \n    Examples:\n        >>> merge_sorted([1, 3, 5], [2, 4, 6])\n        [1, 2, 3, 4, 5, 6]\n    \"\"\"\n    result: List[T] = []\n    i = 0\n    j = 0\n    while i < len(a) and j < len(b):\n        if a[i] <= b[j]:\n            result.append(a[i])\n            i += 1\n        else:\n            result.append(b[j])\n            j += 1\n    result.extend(a[i:])\n    result.extend(b[j:])\n    return result",
+    "difficulty": "easy",
+    "tags": ["algorithms", "sorting", "lists"]
+  },
+  {
+    "system": "You are an expert Python developer. Write clean, well-documented code with type hints.",
+    "user_prompt": "Implement a thread-safe singleton pattern in Python.",
+    "response": "import threading\nfrom typing import TypeVar, Type, Any\n\nT = TypeVar('T', bound='Singleton')\n\nclass Singleton:\n    \"\"\"Thread-safe singleton base class.\n    \n    Usage:\n        class MyService(Singleton):\n            def __init__(self) -> None:\n                self.value = 42\n    \n        a = MyService()\n        b = MyService()\n        assert a is b\n    \"\"\"\n    _instances: dict = {}\n    _lock: threading.Lock = threading.Lock()\n\n    def __new__(cls: Type[T]) -> T:\n        if cls not in cls._instances:\n            with cls._lock:\n                if cls not in cls._instances:\n                    instance = super().__new__(cls)\n                    cls._instances[cls] = instance\n        return cls._instances[cls]  # type: ignore\n\n    @classmethod\n    def reset(cls: Type['Singleton']) -> None:\n        \"\"\"Reset the singleton instance (useful for testing).\"\"\"\n        with cls._lock:\n            cls._instances.pop(cls, None)",
+    "difficulty": "medium",
+    "tags": ["design-patterns", "threading", "singleton"]
+  },
+  {
+    "system": "You are an expert Python developer. Write clean, well-documented code with type hints.",
+    "user_prompt": "Write a Python function that computes the edit distance (Levenshtein distance) between two strings using dynamic programming.",
+    "response": "from typing import List\n\ndef levenshtein_distance(s1: str, s2: str) -> int:\n    \"\"\"Compute the Levenshtein edit distance between two strings.\n    \n    The edit distance is the minimum number of single-character edits\n    (insertions, deletions, substitutions) required to transform s1 into s2.\n    \n    Args:\n        s1: First string.\n        s2: Second string.\n    \n    Returns:\n        The edit distance as a non-negative integer.\n    \"\"\"\n    len1 = len(s1)\n    len2 = len(s2)\n    dp: List[List[int]] = [[0] * (len2 + 1) for _ in range(len1 + 1)]\n    for i in range(len1 + 1):\n        dp[i][0] = i\n    for j in range(len2 + 1):\n        dp[0][j] = j\n    for i in range(1, len1 + 1):\n        for j in range(1, len2 + 1):\n            cost = 0 if s1[i - 1] == s2[j - 1] else 1\n            dp[i][j] = min(\n                dp[i - 1][j] + 1,\n                dp[i][j - 1] + 1,\n                dp[i - 1][j - 1] + cost\n            )\n    return dp[len1][len2]",
+    "difficulty": "medium",
+    "tags": ["algorithms", "dynamic-programming", "strings"]
+  },
+  {
+    "system": "You are an expert Python developer. Write clean, well-documented code with type hints.",
+    "user_prompt": "Write a Python dataclass that represents a configuration with nested sections, with validation and a from_dict class method.",
+    "response": "from dataclasses import dataclass, field\nfrom typing import Dict, List, Optional, Any\n\n@dataclass(frozen=True)\nclass DatabaseConfig:\n    \"\"\"Database connection configuration.\"\"\"\n    host: str = 'localhost'\n    port: int = 5432\n    name: str = ''\n    user: str = ''\n    password: str = ''\n    pool_size: int = 10\n\n    def __post_init__(self) -> None:\n        if not self.host:\n            raise ValueError('Database host is required')\n        if not 1 <= self.port <= 65535:\n            raise ValueError(f'Invalid port: {self.port}')\n        if self.pool_size < 1:\n            raise ValueError('pool_size must be >= 1')\n\n@dataclass(frozen=True)\nclass ServerConfig:\n    \"\"\"Server configuration.\"\"\"\n    host: str = '0.0.0.0'\n    port: int = 8000\n    debug: bool = False\n    workers: int = 4\n\n@dataclass(frozen=True)\nclass AppConfig:\n    \"\"\"Application configuration with nested sections.\"\"\"\n    app_name: str = 'MyApp'\n    database: DatabaseConfig = field(default_factory=DatabaseConfig)\n    server: ServerConfig = field(default_factory=ServerConfig)\n    allowed_origins: List[str] = field(default_factory=lambda: ['*'])\n\n    @classmethod\n    def from_dict(cls, data: Dict[str, Any]) -> 'AppConfig':\n        \"\"\"Create AppConfig from a dictionary, ignoring unknown keys.\n        \n        Args:\n            data: Dictionary with configuration values.\n        \n        Returns:\n            A new AppConfig instance.\n        \"\"\"\n        db_data = data.get('database', {})\n        srv_data = data.get('server', {})\n        return cls(\n            app_name=data.get('app_name', 'MyApp'),\n            database=DatabaseConfig(**db_data),\n            server=ServerConfig(**srv_data),\n            allowed_origins=data.get('allowed_origins', ['*']),\n        )",
+    "difficulty": "medium",
+    "tags": ["dataclasses", "configuration", "validation"]
+  },
+  {
+    "system": "You are an expert Python developer. Write clean, well-documented code with type hints.",
+    "user_prompt": "Write a Python generator that yields prime numbers indefinitely using the Sieve of Eratosthenes algorithm.",
+    "response": "from typing import Generator\n\ndef primes() -> Generator[int, None, None]:\n    \"\"\"Generate prime numbers indefinitely using a lazy Sieve of Eratosthenes.\n    \n    Yields:\n        The next prime number in sequence, starting from 2.\n    \n    Examples:\n        >>> gen = primes()\n        >>> [next(gen) for _ in range(5)]\n        [2, 3, 5, 7, 11]\n    \"\"\"\n    composites: dict = {}\n    candidate = 2\n    while True:\n        if candidate not in composites:\n            yield candidate\n            composites[candidate * candidate] = [candidate]\n        else:\n            for prime in composites[candidate]:\n                next_multiple = candidate + prime\n                composites.setdefault(next_multiple, []).append(prime)\n            del composites[candidate]\n        candidate += 1",
+    "difficulty": "medium",
+    "tags": ["algorithms", "generators", "math"]
+  },
+  {
+    "system": "You are an expert Python developer. Write clean, well-documented code with type hints.",
+    "user_prompt": "Write a Python function that takes a list of dictionaries and groups them by a specified key, returning a dict of lists.",
+    "response": "from typing import List, Dict, Any, TypeVar\n\nK = TypeVar('K')\n\ndef group_by(items: List[Dict[str, Any]], key: str) -> Dict[Any, List[Dict[str, Any]]]:\n    \"\"\"Group a list of dictionaries by a specified key.\n    \n    Args:\n        items: List of dictionaries to group.\n        key: The dictionary key to group by.\n    \n    Returns:\n        Dictionary mapping each unique key value to a list of matching items.\n    \n    Raises:\n        KeyError: If any item is missing the specified key.\n    \n    Examples:\n        >>> data = [{'name': 'Alice', 'dept': 'eng'}, {'name': 'Bob', 'dept': 'eng'}, {'name': 'Carol', 'dept': 'sales'}]\n        >>> result = group_by(data, 'dept')\n        >>> result['eng'][0]['name']\n        'Alice'\n    \"\"\"\n    result: Dict[Any, List[Dict[str, Any]]] = {}\n    for item in items:\n        group_key = item[key]\n        if group_key not in result:\n            result[group_key] = []\n        result[group_key].append(item)\n    return result",
+    "difficulty": "easy",
+    "tags": ["data-structures", "grouping", "dictionaries"]
+  },
+  {
+    "system": "You are an expert Python developer. Write clean, well-documented code with type hints.",
+    "user_prompt": "Write a Python function that deep-merges two dictionaries, with values from the second dict overriding the first for non-dict values.",
+    "response": "from typing import Dict, Any\n\ndef deep_merge(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:\n    \"\"\"Deep-merge two dictionaries recursively.\n    \n    For non-dict values, the override dict wins. For dict values,\n    they are merged recursively.\n    \n    Args:\n        base: The base dictionary (not modified).\n        override: The override dictionary.\n    \n    Returns:\n        A new dictionary with merged values.\n    \n    Examples:\n        >>> deep_merge({'a': 1, 'b': {'x': 1}}, {'b': {'y': 2}, 'c': 3})\n        {'a': 1, 'b': {'x': 1, 'y': 2}, 'c': 3}\n    \"\"\"\n    result = dict(base)\n    for key, value in override.items():\n        if key in result and isinstance(result[key], dict) and isinstance(value, dict):\n            result[key] = deep_merge(result[key], value)\n        else:\n            result[key] = value\n    return result",
+    "difficulty": "easy",
+    "tags": ["data-structures", "dictionaries", "recursion"]
+  },
+  {
+    "system": "You are an expert Python developer. Write clean, well-documented code with type hints.",
+    "user_prompt": "Write a Python class that implements a simple event emitter with on, off, and emit methods.",
+    "response": "from typing import Callable, Dict, List, Any\n\nclass EventEmitter:\n    \"\"\"A simple event emitter for pub/sub pattern.\n    \n    Usage:\n        emitter = EventEmitter()\n        emitter.on('click', handler_fn)\n        emitter.emit('click', x=10)\n        emitter.off('click', handler_fn)\n    \"\"\"\n\n    def __init__(self) -> None:\n        self._handlers: Dict[str, List[Callable[..., None]]] = {}\n\n    def on(self, event: str, handler: Callable[..., None]) -> None:\n        \"\"\"Register a handler for an event.\n        \n        Args:\n            event: Event name.\n            handler: Callback function.\n        \"\"\"\n        self._handlers.setdefault(event, []).append(handler)\n\n    def off(self, event: str, handler: Callable[..., None]) -> None:\n        \"\"\"Remove a handler for an event.\n        \n        Args:\n            event: Event name.\n            handler: Callback function to remove.\n        \"\"\"\n        handlers = self._handlers.get(event, [])\n        if handler in handlers:\n            handlers.remove(handler)\n\n    def emit(self, event: str, *args: Any, **kwargs: Any) -> None:\n        \"\"\"Emit an event, calling all registered handlers.\n        \n        Args:\n            event: Event name.\n            *args: Positional arguments for handlers.\n            **kwargs: Keyword arguments for handlers.\n        \"\"\"\n        for handler in self._handlers.get(event, []):\n            handler(*args, **kwargs)",
+    "difficulty": "medium",
+    "tags": ["design-patterns", "events", "pub-sub"]
+  }
+]

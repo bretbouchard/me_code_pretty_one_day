@@ -1,7 +1,7 @@
 # Model training and serving
 mlx-lm>=0.21.0
-lm>=0.2.0
 transformers>=4.40.0
+datasets>=2.0.0  # optional: only for Magicoder download in prepare_training_data.py
 
 # Benchmarking
 human-eval>=0.4.0

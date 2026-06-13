@@ -222,7 +222,21 @@ def main() -> None:
         )
         all_examples.extend(magicoder_examples)
 
-    # --- Step 3: Shuffle and split ---
+    # --- Step 3: Deduplicate by user prompt ---
+    seen_prompts = set()
+    deduped_examples = []
+    for ex in all_examples:
+        msgs = ex.get("messages", [])
+        user_msgs = [m["content"].strip() for m in msgs if m.get("role") == "user"]
+        if user_msgs and user_msgs[0] not in seen_prompts:
+            seen_prompts.add(user_msgs[0])
+            deduped_examples.append(ex)
+    dup_count = len(all_examples) - len(deduped_examples)
+    all_examples = deduped_examples
+    if dup_count:
+        print(f"  Deduplicated: removed {dup_count} duplicate prompts")
+
+    # --- Step 4: Shuffle and split ---
     print(f"\nTotal examples: {len(all_examples)}")
     rng = random.Random(args.seed + 3)
     rng.shuffle(all_examples)

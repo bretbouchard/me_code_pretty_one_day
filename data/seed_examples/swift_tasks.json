@@ -1,0 +1,86 @@
+[
+  {
+    "system": "You are an expert Swift developer. Write clean, idiomatic Swift code following Swift conventions.",
+    "user_prompt": "Create a SwiftUI view that displays a list of items with a search bar that filters the list in real time.",
+    "response": "import SwiftUI\n\nstruct FilterableListView: View {\n    @State private var searchText = \"\"\n    let items: [String]\n\n    var filteredItems: [String] {\n        if searchText.isEmpty {\n            return items\n        }\n        return items.filter { $0.localizedCaseInsensitiveContains(searchText) }\n    }\n\n    var body: some View {\n        VStack {\n            TextField(\"Search\", text: $searchText)\n                .textFieldStyle(.roundedBorder)\n                .padding(.horizontal)\n            List(filteredItems, id: \\.self) { item in\n                Text(item)\n            }\n            .listStyle(.plain)\n        }\n        .navigationTitle(\"Items\")\n    }\n}",
+    "difficulty": "easy",
+    "tags": ["swiftui", "lists", "search", "filtering"]
+  },
+  {
+    "system": "You are an expert Swift developer. Write clean, idiomatic Swift code following Swift conventions.",
+    "user_prompt": "Implement a Combine publisher that debounces text input and publishes the latest value after 0.5 seconds of inactivity.",
+    "response": "import SwiftUI\nimport Combine\n\nclass SearchViewModel: ObservableObject {\n    @Published var searchText = \"\"\n    @Published var debouncedText = \"\"\n\n    private var cancellables = Set<AnyCancellable>()\n\n    init() {\n        $searchText\n            .removeDuplicates()\n            .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)\n            .sink { [weak self] value in\n                self?.debouncedText = value\n            }\n            .store(in: &cancellables)\n    }\n}",
+    "difficulty": "medium",
+    "tags": ["combine", "debounce", "reactive", "publishers"]
+  },
+  {
+    "system": "You are an expert Swift developer. Write clean, idiomatic Swift code following Swift conventions.",
+    "user_prompt": "Write a Swift async/await function that fetches data from a URL and decodes it into a Codable struct.",
+    "response": "import Foundation\n\nstruct User: Codable, Identifiable {\n    let id: Int\n    let name: String\n    let email: String\n}\n\nenum APIError: Error, LocalizedError {\n    case invalidURL\n    case networkError(Error)\n    case decodingError(Error)\n    case invalidResponse(statusCode: Int)\n\n    var errorDescription: String? {\n        switch self {\n        case .invalidURL:\n            return \"The URL is invalid.\"\n        case .networkError(let error):\n            return \"Network error: \\(error.localizedDescription)\"\n        case .decodingError(let error):\n            return \"Failed to decode response: \\(error.localizedDescription)\"\n        case .invalidResponse(let code):\n            return \"Invalid response with status code \\(code).\"\n        }\n    }\n}\n\nfunc fetchUsers(from urlString: String) async throws -> [User] {\n    guard let url = URL(string: urlString) else {\n        throw APIError.invalidURL\n    }\n    let (data, response) = try await URLSession.shared.data(from: url)\n    guard let httpResponse = response as? HTTPURLResponse else {\n        throw APIError.invalidResponse(statusCode: -1)\n    }\n    guard (200...299).contains(httpResponse.statusCode) else {\n        throw APIError.invalidResponse(statusCode: httpResponse.statusCode)\n    }\n    do {\n        return try JSONDecoder().decode([User].self, from: data)\n    } catch {\n        throw APIError.decodingError(error)\n    }\n}",
+    "difficulty": "medium",
+    "tags": ["async-await", "networking", "codable", "decoding"]
+  },
+  {
+    "system": "You are an expert Swift developer. Write clean, idiomatic Swift code following Swift conventions.",
+    "user_prompt": "Implement a generic result type in Swift with success and failure cases, similar to Rust's Result.",
+    "response": "enum Result<Value, Error: Swift.Error> {\n    case success(Value)\n    case failure(Error)\n\n    var value: Value? {\n        switch self {\n        case .success(let value):\n            return value\n        case .failure:\n            return nil\n        }\n    }\n\n    var error: Error? {\n        switch self {\n        case .success:\n            return nil\n        case .failure(let error):\n            return error\n        }\n    }\n\n    func map<NewValue>(_ transform: (Value) -> NewValue) -> Result<NewValue, Error> {\n        switch self {\n        case .success(let value):\n            return .success(transform(value))\n        case .failure(let error):\n            return .failure(error)\n        }\n    }\n\n    func flatMap<NewValue>(_ transform: (Value) -> Result<NewValue, Error>) -> Result<NewValue, Error> {\n        switch self {\n        case .success(let value):\n            return transform(value)\n        case .failure(let error):\n            return .failure(error)\n        }\n    }\n}",
+    "difficulty": "medium",
+    "tags": ["generics", "error-handling", "result-type", "functional"]
+  },
+  {
+    "system": "You are an expert Swift developer. Write clean, idiomatic Swift code following Swift conventions.",
+    "user_prompt": "Write a Swift property wrapper that persists a value to UserDefaults with automatic save and restore.",
+    "response": "import Foundation\nimport SwiftUI\n\n@propertyWrapper\nstruct UserDefaultsBacked<Value: Codable> {\n    let key: String\n    let defaultValue: Value\n    private let encoder = JSONEncoder()\n    private let decoder = JSONDecoder()\n\n    var wrappedValue: Value {\n        get {\n            guard let data = UserDefaults.standard.data(forKey: key) else {\n                return defaultValue\n            }\n            return (try? decoder.decode(Value.self, from: data)) ?? defaultValue\n        }\n        set {\n            if let data = try? encoder.encode(newValue) {\n                UserDefaults.standard.set(data, forKey: key)\n            }\n        }\n    }\n\n    init(wrappedValue: Value, key: String) {\n        self.defaultValue = wrappedValue\n        self.key = key\n    }\n}\n\n// Usage:\n// @UserDefaultsBacked(key: \"darkMode\") var isDarkMode = false\n// @UserDefaultsBacked(key: \"username\") var username = \"Guest\"",
+    "difficulty": "medium",
+    "tags": ["property-wrappers", "userdefaults", "persistence"]
+  },
+  {
+    "system": "You are an expert Swift developer. Write clean, idiomatic Swift code following Swift conventions.",
+    "user_prompt": "Implement a protocol with default implementations and write an extension that adds computed properties.",
+    "response": "import Foundation\n\nprotocol IdentifiableEntity {\n    var id: UUID { get }\n    var createdAt: Date { get }\n    var updatedAt: Date { get set }\n}\n\nextension IdentifiableEntity {\n    var isRecentlyCreated: Bool {\n        Date().timeIntervalSince(createdAt) < 300\n    }\n\n    var ageInSeconds: TimeInterval {\n        Date().timeIntervalSince(createdAt)\n    }\n\n    mutating func touch() {\n        updatedAt = Date()\n    }\n}\n\nstruct Document: IdentifiableEntity {\n    let id = UUID()\n    let createdAt = Date()\n    var updatedAt: Date\n    var title: String\n    var content: String\n}",
+    "difficulty": "easy",
+    "tags": ["protocols", "extensions", "default-implementations"]
+  },
+  {
+    "system": "You are an expert Swift developer. Write clean, idiomatic Swift code following Swift conventions.",
+    "user_prompt": "Write a SwiftUI view modifier that applies a consistent card style with shadow, corner radius, and padding.",
+    "response": "import SwiftUI\n\nstruct CardModifier: ViewModifier {\n    var cornerRadius: CGFloat = 12\n    var shadowRadius: CGFloat = 8\n    var shadowOpacity: Double = 0.1\n    var padding: CGFloat = 16\n\n    func body(content: Content) -> some View {\n        content\n            .padding(padding)\n            .background(Color(.systemBackground))\n            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))\n            .shadow(color: .black.opacity(shadowOpacity), radius: shadowRadius, x: 0, y: 4)\n            .overlay(\n                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)\n                    .stroke(Color(.separator), lineWidth: 0.5)\n            )\n    }\n}\n\nextension View {\n    func cardStyle(\n        cornerRadius: CGFloat = 12,\n        shadowRadius: CGFloat = 8,\n        shadowOpacity: Double = 0.1,\n        padding: CGFloat = 16\n    ) -> some View {\n        modifier(CardModifier(\n            cornerRadius: cornerRadius,\n            shadowRadius: shadowRadius,\n            shadowOpacity: shadowOpacity,\n            padding: padding\n        ))\n    }\n}",
+    "difficulty": "easy",
+    "tags": ["swiftui", "view-modifiers", "styling"]
+  },
+  {
+    "system": "You are an expert Swift developer. Write clean, idiomatic Swift code following Swift conventions.",
+    "user_prompt": "Implement a thread-safe observable object in Swift using an actor for concurrent state management.",
+    "response": "import Foundation\n\nactor StateStore {\n    private var _count: Int = 0\n    private var _items: [String] = []\n\n    var count: Int { _count }\n    var items: [String] { _items }\n\n    func increment() {\n        _count += 1\n    }\n\n    func decrement() {\n        _count = max(0, _count - 1)\n    }\n\n    func addItem(_ item: String) {\n        _items.append(item)\n    }\n\n    func removeItem(at index: Int) {\n        guard _items.indices.contains(index) else { return }\n        _items.remove(at: index)\n    }\n\n    func reset() {\n        _count = 0\n        _items = []\n    }\n\n    func snapshot() -> (count: Int, items: [String]) {\n        return (_count, _items)\n    }\n}",
+    "difficulty": "medium",
+    "tags": ["actors", "concurrency", "thread-safety", "swift-concurrency"]
+  },
+  {
+    "system": "You are an expert Swift developer. Write clean, idiomatic Swift code following Swift conventions.",
+    "user_prompt": "Write a Codable enum in Swift with associated values and custom coding keys for JSON serialization.",
+    "response": "import Foundation\n\nenum HTTPMethod: String, Codable {\n    case get = \"GET\"\n    case post = \"POST\"\n    case put = \"PUT\"\n    case patch = \"PATCH\"\n    case delete = \"DELETE\"\n}\n\nenum APIResponse<T: Codable>: Codable {\n    case success(T)\n    case error(message: String, code: Int)\n\n    private enum CodingKeys: String, CodingKey {\n        case status\n        case data\n        case message\n        case code\n    }\n\n    private enum Status: String, Codable {\n        case success\n        case error\n    }\n\n    init(from decoder: Decoder) throws {\n        let container = try decoder.container(keyedBy: CodingKeys.self)\n        let status = try container.decode(Status.self, forKey: .status)\n        switch status {\n        case .success:\n            let data = try container.decode(T.self, forKey: .data)\n            self = .success(data)\n        case .error:\n            let message = try container.decode(String.self, forKey: .message)\n            let code = try container.decode(Int.self, forKey: .code)\n            self = .error(message: message, code: code)\n        }\n    }\n\n    func encode(to encoder: Encoder) throws {\n        var container = encoder.container(keyedBy: CodingKeys.self)\n        switch self {\n        case .success(let data):\n            try container.encode(Status.success, forKey: .status)\n            try container.encode(data, forKey: .data)\n        case .error(let message, let code):\n            try container.encode(Status.error, forKey: .status)\n            try container.encode(message, forKey: .message)\n            try container.encode(code, forKey: .code)\n        }\n    }\n}",
+    "difficulty": "hard",
+    "tags": ["codable", "enums", "serialization", "json"]
+  },
+  {
+    "system": "You are an expert Swift developer. Write clean, idiomatic Swift code following Swift conventions.",
+    "user_prompt": "Write a Swift generic stack data structure with push, pop, and peek operations.",
+    "response": "struct Stack<Element> {\n    private var storage: [Element] = []\n\n    var isEmpty: Bool { storage.isEmpty }\n    var count: Int { storage.count }\n    var peek: Element? { storage.last }\n\n    mutating func push(_ element: Element) {\n        storage.append(element)\n    }\n\n    @discardableResult\n    mutating func pop() -> Element? {\n        storage.popLast()\n    }\n\n    mutating func removeAll() {\n        storage.removeAll()\n    }\n}\n\nextension Stack: ExpressibleByArrayLiteral {\n    init(arrayLiteral elements: Element...) {\n        storage = elements\n    }\n}\n\nextension Stack: CustomStringConvertible {\n    var description: String {\n        \"Stack(\\(storage.reversed().map { String(describing: $0) }.joined(separator: \", \")))\"\n    }\n}\n\nextension Stack: Sequence {\n    func makeIterator() -> IndexingIterator<[Element]> {\n        storage.makeIterator()\n    }\n}",
+    "difficulty": "easy",
+    "tags": ["generics", "data-structures", "stack", "protocols"]
+  },
+  {
+    "system": "You are an expert Swift developer. Write clean, idiomatic Swift code following Swift conventions.",
+    "user_prompt": "Implement a SwiftUI view that shows a loading indicator while data is being fetched using async/await and @TaskLocal for request tracing.",
+    "response": "import SwiftUI\n\n@TaskLocal static var requestID: String?\n\nclass DataLoader: ObservableObject {\n    @Published var items: [String] = []\n    @Published var isLoading = false\n    @Published var errorMessage: String?\n\n    func loadItems() async {\n        isLoading = true\n        errorMessage = nil\n        requestID = UUID().uuidString\n        defer {\n            isLoading = false\n            requestID = nil\n        }\n        do {\n            let url = URL(string: \"https://api.example.com/items\")!\n            let (data, _) = try await URLSession.shared.data(from: url)\n            let decoded = try JSONDecoder().decode([String].self, from: data)\n            await MainActor.run {\n                items = decoded\n            }\n        } catch {\n            await MainActor.run {\n                errorMessage = error.localizedDescription\n            }\n        }\n    }\n}\n\nstruct ItemListView: View {\n    @StateObject private var loader = DataLoader()\n\n    var body: some View {\n        Group {\n            if loader.isLoading {\n                ProgressView(\"Loading...\")\n            } else if let error = loader.errorMessage {\n                VStack {\n                    Text(error).foregroundStyle(.red)\n                    Button(\"Retry\") { Task { await loader.loadItems() } }\n                }\n            } else {\n                List(loader.items, id: \\.self) { item in\n                    Text(item)\n                }\n            }\n        }\n        .task { await loader.loadItems() }\n        .navigationTitle(\"Items\")\n    }\n}",
+    "difficulty": "medium",
+    "tags": ["swiftui", "async-await", "loading-states", "task-local"]
+  },
+  {
+    "system": "You are an expert Swift developer. Write clean, idiomatic Swift code following Swift conventions.",
+    "user_prompt": "Write a Swift extension on Array that provides a safe subscript operator returning Optional to avoid out-of-bounds crashes.",
+    "response": "extension Array {\n    subscript(safe index: Int) -> Element? {\n        guard index >= 0, index < count else {\n            return nil\n        }\n        return self[index]\n    }\n}\n\n// Usage:\n// let items = [\"a\", \"b\", \"c\"]\n// print(items[safe: 1]) // Optional(\"b\")\n// print(items[safe: 10]) // nil\n\nextension Array {\n    func chunked(into size: Int) -> [[Element]] {\n        guard size > 0 else { return [] }\n        return stride(from: 0, to: count, by: size).map {\n            Array(self[$0..<min($0 + size, count)])\n        }\n    }\n}\n\n// Usage:\n// let numbers = [1, 2, 3, 4, 5]\n// let chunks = numbers.chunked(into: 2) // [[1, 2], [3, 4], [5]]",
+    "difficulty": "easy",
+    "tags": ["extensions", "arrays", "safety"]
+  }
+]
