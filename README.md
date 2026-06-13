@@ -1,4 +1,4 @@
-# me_code_pretty_one_day
+# Me Code Pretty One Day
 
 > *Named after David Sedaris's "Me Talk Pretty One Day" — because training a model on your own code is a lot like arriving in a foreign country and trying to make yourself understood. The grammar is wrong. The vocabulary is wrong. But eventually, with enough practice, it starts to sound like you.*
 
